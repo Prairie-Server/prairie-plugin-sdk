@@ -5,8 +5,8 @@ import (
 
 	"google.golang.org/protobuf/types/known/structpb"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/convert"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/convert"
 )
 
 func TestCapabilityRecordsFromManifestRoundTrips(t *testing.T) {

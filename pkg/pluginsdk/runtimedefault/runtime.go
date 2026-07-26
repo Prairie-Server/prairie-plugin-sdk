@@ -17,8 +17,8 @@ package runtimedefault
 import (
 	"context"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	sdkruntime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	sdkruntime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
 )
 
 // Server is meant to be embedded into a plugin's Runtime server
@@ -30,7 +30,7 @@ type Server struct {
 
 // BindHostBroker stores the broker stream ID into the runtime package's
 // plugin-side singleton, enabling subsequent runtime.Host() calls to dial the
-// silo host's RuntimeHost service.
+// prairie host's RuntimeHost service.
 func (s *Server) BindHostBroker(_ context.Context, req *pluginv1.BindHostBrokerRequest) (*pluginv1.BindHostBrokerResponse, error) {
 	sdkruntime.SetHostBrokerID(req.GetBrokerId())
 	return &pluginv1.BindHostBrokerResponse{}, nil

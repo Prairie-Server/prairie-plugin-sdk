@@ -67,12 +67,12 @@ jobs:
 
       - name: Verify tagged module can be consumed externally
         env:
-          # GOPRIVATE implies GONOPROXY for Silo modules, so the SDK itself is
+          # GOPRIVATE implies GONOPROXY for Prairie modules, so the SDK itself is
           # still fetched directly from GitHub; the proxy only serves
           # third-party deps whose origin hosts reject CI traffic (gonum.org).
           GOPROXY: https://proxy.golang.org,direct
-          GOPRIVATE: github.com/Silo-Server/*
-          GONOSUMDB: github.com/Silo-Server/*
+          GOPRIVATE: github.com/prairie-server/*
+          GONOSUMDB: github.com/prairie-server/*
         run: |
           tmpdir="$(mktemp -d)"
           cd "$tmpdir"
@@ -81,15 +81,15 @@ jobs:
           package main
 
           import (
-            _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/config"
-            _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/convert"
-            _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
-            _ "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+            _ "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/config"
+            _ "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/convert"
+            _ "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
+            _ "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
           )
 
           func main() {}
           EOF
-          go get "github.com/Silo-Server/silo-plugin-sdk@${{ needs.version.outputs.tag }}"
+          go get "github.com/prairie-server/prairie-plugin-sdk@${{ needs.version.outputs.tag }}"
           go mod tidy
           go build ./...
 

@@ -9,9 +9,9 @@ import (
 )
 
 const testManifestJSON = `{
-  "plugin_id": "silo.test.plugin",
+  "plugin_id": "prairie.test.plugin",
   "version": "0.0.1",
-  "silo_api_version": "v1",
+  "prairie_api_version": "v1",
   "capabilities": []
 }`
 
@@ -20,7 +20,7 @@ func TestLoadWithChecksumOverridesVersionAndStampsChecksum(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadWithChecksum: %v", err)
 	}
-	if m.GetPluginId() != "silo.test.plugin" {
+	if m.GetPluginId() != "prairie.test.plugin" {
 		t.Fatalf("plugin_id: got %q", m.GetPluginId())
 	}
 	if m.GetVersion() != "9.9.9" {

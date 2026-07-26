@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func TestLoadAcceptsRichAdminForm(t *testing.T) {
@@ -15,9 +15,9 @@ func TestLoadAcceptsRichAdminForm(t *testing.T) {
 	// no static options on purpose — they are populated at runtime via
 	// ListConfigOptions, so the dynamic_options exemption must let them load.
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -67,9 +67,9 @@ func TestLoadAcceptsRichAdminForm(t *testing.T) {
 // options (and no dynamic_options flag) must be rejected by Load.
 func TestLoadValidatesCapabilityConfigSchema(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -95,9 +95,9 @@ func TestLoadValidatesCapabilityConfigSchema(t *testing.T) {
 func TestMultiSelectRequiresArrayProperty(t *testing.T) {
 	// Fail: MULTI_SELECT mapped to "string" property.
 	rawBad := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -120,9 +120,9 @@ func TestMultiSelectRequiresArrayProperty(t *testing.T) {
 
 	// Pass: MULTI_SELECT mapped to "array" property with static options.
 	rawGood := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -147,9 +147,9 @@ func TestMultiSelectRequiresArrayProperty(t *testing.T) {
 // field whose key is absent from json_schema.properties is rejected.
 func TestLoadRejectsUndeclaredCapabilityField(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -177,9 +177,9 @@ func TestLoadRejectsUndeclaredCapabilityField(t *testing.T) {
 // undeclared field key is rejected.
 func TestShowWhenReferencesUnknownField(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -209,9 +209,9 @@ func TestShowWhenReferencesUnknownField(t *testing.T) {
 // referencing an undeclared field key is rejected.
 func TestSectionFieldKeysReferencesUnknownField(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -238,9 +238,9 @@ func TestSectionFieldKeysReferencesUnknownField(t *testing.T) {
 
 func TestExclusiveGroupFieldReferencesDeclaredConfigField(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -262,9 +262,9 @@ func TestExclusiveGroupFieldReferencesDeclaredConfigField(t *testing.T) {
 
 func TestExclusiveGroupFieldReferencesUnknownField(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{
@@ -297,9 +297,9 @@ func TestForwardReferenceShowWhenPassesValidation(t *testing.T) {
 	// Re-use the same payload as TestLoadAcceptsRichAdminForm to confirm the
 	// rich form still passes (regression guard for the second-pass check).
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [{
 	    "type": "request_router.v1", "id": "arr", "display_name": "X", "description": "Y",
 	    "config_schema": [{

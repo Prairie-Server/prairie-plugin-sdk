@@ -1,6 +1,6 @@
 # RuntimeHost.v1
 
-`RuntimeHost.v1` is the gRPC service the silo host exposes to plugins. It
+`RuntimeHost.v1` is the gRPC service the prairie host exposes to plugins. It
 inverts the usual capability flow: instead of the host calling into the
 plugin, the plugin calls back into the host.
 
@@ -36,9 +36,9 @@ plugin's `Runtime` server:
 import (
     "context"
 
-    pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-    sdkruntime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
-    "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimedefault"
+    pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+    sdkruntime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
+    "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimedefault"
 )
 
 type runtimeServer struct {
@@ -87,7 +87,7 @@ func (c *capability) DoThing(ctx context.Context, ...) {
 
 ### Library presence
 
-When rendering a poster grid, batch-check which titles silo already has:
+When rendering a poster grid, batch-check which titles prairie already has:
 
 ```go
 host := sdkruntime.Host()
@@ -125,8 +125,8 @@ when finding another plugin:
 
 ```go
 import (
-    "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability"
-    "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost"
+    "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/capability"
+    "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimehost"
 )
 
 plugins, err := host.ListInstalledPluginsByCapability(ctx, capability.RequestRouter)

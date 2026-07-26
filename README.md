@@ -1,19 +1,19 @@
-# silo-plugin-sdk
+# prairie-plugin-sdk
 
-Public Go SDK for building Silo plugins. **Not a runtime plugin** — this is a library that plugin authors depend on via `go.mod`.
+Public Go SDK for building Prairie plugins. **Not a runtime plugin** — this is a library that plugin authors depend on via `go.mod`.
 
-`silo-plugin-sdk` is the source of truth for the plugin authoring contract. First-party consumers (Silo host, `silo-plugin-tmdb`, `silo-plugin-metadb`, every other plugin in this repo) pin tagged semver releases. Local multi-repo workspaces may use `go.work` or a temporary `replace`, but CI and release builds resolve the SDK from a published module tag.
+`prairie-plugin-sdk` is the source of truth for the plugin authoring contract. First-party consumers (Prairie host, `prairie-plugin-tmdb`, `prairie-plugin-metadb`, every other plugin in this repo) pin tagged semver releases. Local multi-repo workspaces may use `go.work` or a temporary `replace`, but CI and release builds resolve the SDK from a published module tag.
 
 ## Packages
 
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1` — generated protobuf code.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
-- `github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1` — generated protobuf code.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
 
 ## Capability families
 
@@ -41,13 +41,13 @@ A typical plugin:
 1. Defines a `manifest.json` using the protobuf-derived schema.
 2. Exposes a `Runtime` gRPC server plus one or more capability servers.
 3. Supports the `manifest` subcommand via `pkg/pluginsdk/runtime` so the host can introspect manifests without launching the plugin.
-4. Is installed either from a catalog or by uploading a trusted binary to a Silo server.
+4. Is installed either from a catalog or by uploading a trusted binary to a Prairie server.
 
 For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host).
 
 ## Operator-facing presentation
 
-`PluginManifest.presentation` gives the Silo admin UI typed, plugin-level copy
+`PluginManifest.presentation` gives the Prairie admin UI typed, plugin-level copy
 and canonical links. It is optional for backward compatibility, but cataloged
 plugins should provide a complete block:
 
@@ -59,11 +59,11 @@ plugins should provide a complete block:
     "description_markdown": "A longer description of what the plugin does and when to use it.",
     "setup_markdown": "1. Install the plugin.\n2. Add the required connection.\n3. Enable it for the relevant library.",
     "homepage_url": "https://example.com/plugin",
-    "source_url": "https://github.com/Silo-Server/example-plugin",
-    "support_url": "https://github.com/Silo-Server/example-plugin/issues",
-    "changelog_url": "https://github.com/Silo-Server/example-plugin/releases",
-    "publisher_name": "Silo",
-    "publisher_url": "https://github.com/Silo-Server",
+    "source_url": "https://github.com/prairie-server/example-plugin",
+    "support_url": "https://github.com/prairie-server/example-plugin/issues",
+    "changelog_url": "https://github.com/prairie-server/example-plugin/releases",
+    "publisher_name": "Prairie",
+    "publisher_url": "https://github.com/prairie-server",
     "license_spdx": "AGPL-3.0-or-later"
   }
 }
@@ -124,7 +124,7 @@ The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`,
 
 ## Watch sync providers
 
-`watch_sync_provider.v1` lets external plugins participate in Silo's host-owned
+`watch_sync_provider.v1` lets external plugins participate in Prairie's host-owned
 watch-provider pipeline. The host owns encrypted per-profile credentials,
 OAuth state, durable desired-state events, retries, ordering, and
 reconciliation. Plugins are stateless protocol adapters: they receive secrets
@@ -173,7 +173,7 @@ keys as transient secrets and avoid logging them without redaction.
 
 ## Self-describing binaries
 
-Direct binary upload works best when the plugin embeds a manifest template and computes its own executable checksum at runtime before returning `Runtime.GetManifest`. That keeps the plugin installable without requiring a checked-out Silo repository or a sibling `manifest.json` file at upload time. The example plugin shows the pattern.
+Direct binary upload works best when the plugin embeds a manifest template and computes its own executable checksum at runtime before returning `Runtime.GetManifest`. That keeps the plugin installable without requiring a checked-out Prairie repository or a sibling `manifest.json` file at upload time. The example plugin shows the pattern.
 
 ## Compatibility
 

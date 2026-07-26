@@ -2,13 +2,13 @@
 
 ## Scope
 
-`silo-plugin-sdk` is the public build-time contract for Go plugin authors.
+`prairie-plugin-sdk` is the public build-time contract for Go plugin authors.
 
 This repository is released as a semver-governed Go module. Third-party plugins and first-party consumers should depend on tagged releases, not on sibling repo checkouts or workspace-only overrides.
 
 The compatibility boundary includes:
 
-- protobuf messages and gRPC services under `pkg/pluginproto/silo/plugin/v1`
+- protobuf messages and gRPC services under `pkg/pluginproto/prairie/plugin/v1`
 - runtime bootstrap behavior in `pkg/pluginsdk/runtime`
 - manifest helpers in `pkg/pluginsdk/manifest`
 - config validation helpers in `pkg/pluginsdk/config`
@@ -25,15 +25,15 @@ The compatibility boundary includes:
 
 ## Consumer Rules
 
-- `Silo`, `silo-plugin-tvdb`, and `silo-plugin-tmdb` should pin released SDK tags in `go.mod`.
+- `Prairie`, `prairie-plugin-tvdb`, and `prairie-plugin-tmdb` should pin released SDK tags in `go.mod`.
 - CI and release pipelines should build with `GOWORK=off` and without checking out this repo as a sibling source dependency.
 - Local `go.work` files and temporary `replace` directives are acceptable for development, but they must not be committed as the release path.
 
 ## Runtime Compatibility
 
-- `silo_api_version` is the coarse runtime compatibility gate between Silo and a plugin binary.
+- `prairie_api_version` is the coarse runtime compatibility gate between Prairie and a plugin binary.
 - Host installs should reject incompatible API versions before runtime startup.
-- A plugin binary should return the same manifest shape that Silo installs, except that binaries may compute their checksum dynamically at runtime.
+- A plugin binary should return the same manifest shape that Prairie installs, except that binaries may compute their checksum dynamically at runtime.
 
 ## Go Support
 

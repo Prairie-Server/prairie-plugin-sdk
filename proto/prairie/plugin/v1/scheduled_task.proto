@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package prairie.plugin.v1;
+
+option go_package = "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1";
+
+import "google/protobuf/struct.proto";
+
+service ScheduledTask {
+  rpc Run(RunScheduledTaskRequest) returns (RunScheduledTaskResponse);
+}
+
+message RunScheduledTaskRequest {
+  string task_key = 1;
+  google.protobuf.Struct input = 2;
+}
+
+message RunScheduledTaskResponse {
+  google.protobuf.Struct output = 1;
+}

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	runtime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	runtime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
 	"google.golang.org/grpc"
 )
 
@@ -29,7 +29,7 @@ func TestGRPCServerRegistersScanSource(t *testing.T) {
 	if err := p.GRPCServer(nil, srv); err != nil {
 		t.Fatalf("GRPCServer with ScanSource = %v, want nil", err)
 	}
-	if _, ok := srv.GetServiceInfo()["silo.plugin.v1.ScanSource"]; !ok {
+	if _, ok := srv.GetServiceInfo()["prairie.plugin.v1.ScanSource"]; !ok {
 		t.Fatalf("ScanSource service not registered; got %v", srv.GetServiceInfo())
 	}
 }

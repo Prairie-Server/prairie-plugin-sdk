@@ -12,9 +12,9 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/capability"
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/capability"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimehost"
 )
 
 type fakeServer struct {
@@ -176,13 +176,13 @@ func TestPublishEventTo_PassesTargetNameAndPayload(t *testing.T) {
 	conn := dial(t, srv)
 	c := runtimehost.NewClient(conn)
 
-	if err := c.PublishEventTo(context.Background(), "silo.requests", "approved", map[string]any{
+	if err := c.PublishEventTo(context.Background(), "prairie.requests", "approved", map[string]any{
 		"requestId": "01HXYZ",
 	}); err != nil {
 		t.Fatalf("PublishEventTo: %v", err)
 	}
-	if srv.gotTargetPluginID != "silo.requests" {
-		t.Errorf("target_plugin_id = %q, want silo.requests", srv.gotTargetPluginID)
+	if srv.gotTargetPluginID != "prairie.requests" {
+		t.Errorf("target_plugin_id = %q, want prairie.requests", srv.gotTargetPluginID)
 	}
 	if srv.gotEvent != "approved" {
 		t.Errorf("event_name = %q, want approved", srv.gotEvent)
@@ -216,9 +216,9 @@ func TestPublishEventToInstallation_PassesTargetNameAndPayload(t *testing.T) {
 func TestGetHostInfo_MapsResponse(t *testing.T) {
 	srv := &fakeServer{
 		hostInfoResp: &pluginv1.GetHostInfoResponse{
-			PublicBaseUrl:      "https://silo.example",
-			InternalBaseUrl:    "http://silo:3000",
-			PluginProxyBaseUrl: "https://silo.example/api/v1/plugins",
+			PublicBaseUrl:      "https://prairie.example",
+			InternalBaseUrl:    "http://prairie:3000",
+			PluginProxyBaseUrl: "https://prairie.example/api/v1/plugins",
 		},
 	}
 	conn := dial(t, srv)
@@ -228,7 +228,7 @@ func TestGetHostInfo_MapsResponse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetHostInfo: %v", err)
 	}
-	if got.PublicBaseURL != "https://silo.example" || got.PluginProxyBaseURL == "" {
+	if got.PublicBaseURL != "https://prairie.example" || got.PluginProxyBaseURL == "" {
 		t.Fatalf("bad host info: %+v", got)
 	}
 }
@@ -297,7 +297,7 @@ func TestListInstalledPlugins_ReturnsPlugins(t *testing.T) {
 			Plugins: []*pluginv1.InstalledPlugin{
 				{
 					InstallationId: 42,
-					PluginId:       "silo.requests",
+					PluginId:       "prairie.requests",
 					Version:        "0.1.0",
 					Enabled:        true,
 					Capabilities: []*pluginv1.CapabilityDescriptor{
@@ -314,8 +314,8 @@ func TestListInstalledPlugins_ReturnsPlugins(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListInstalledPlugins: %v", err)
 	}
-	if len(plugins) != 1 || plugins[0].GetPluginId() != "silo.requests" {
-		t.Fatalf("plugins = %+v, want silo.requests", plugins)
+	if len(plugins) != 1 || plugins[0].GetPluginId() != "prairie.requests" {
+		t.Fatalf("plugins = %+v, want prairie.requests", plugins)
 	}
 	if got := plugins[0].GetCapabilities()[0].GetType(); got != "request_router.v1" {
 		t.Errorf("capability type = %q, want request_router.v1", got)
@@ -335,7 +335,7 @@ func TestListInstalledPluginsByCapability_FiltersAndReadsMetadata(t *testing.T) 
 			Plugins: []*pluginv1.InstalledPlugin{
 				{
 					InstallationId: 42,
-					PluginId:       "silo.requests",
+					PluginId:       "prairie.requests",
 					Enabled:        true,
 					Capabilities: []*pluginv1.CapabilityDescriptor{
 						{Type: capability.RequestRouter, Id: "default", Metadata: metadata},
@@ -343,7 +343,7 @@ func TestListInstalledPluginsByCapability_FiltersAndReadsMetadata(t *testing.T) 
 				},
 				{
 					InstallationId: 99,
-					PluginId:       "silo.other",
+					PluginId:       "prairie.other",
 					Enabled:        true,
 					Capabilities: []*pluginv1.CapabilityDescriptor{
 						{Type: capability.HTTPRoutes, Id: "default"},
@@ -403,7 +403,7 @@ func TestClientValidation(t *testing.T) {
 	if err := c.PublishEventTo(context.Background(), "", "approved", nil); err == nil {
 		t.Fatal("PublishEventTo empty target returned nil error")
 	}
-	if err := c.PublishEventTo(context.Background(), "silo.requests", "", nil); err == nil {
+	if err := c.PublishEventTo(context.Background(), "prairie.requests", "", nil); err == nil {
 		t.Fatal("PublishEventTo empty name returned nil error")
 	}
 	if err := c.PublishEventToInstallation(context.Background(), 0, "approved", nil); err == nil {

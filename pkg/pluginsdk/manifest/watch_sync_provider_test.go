@@ -3,13 +3,13 @@ package manifest_test
 import (
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	publicmanifest "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	publicmanifest "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func TestLoadWatchSyncProvider(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id":"silo.anilist", "version":"1.0.0", "silo_api_version":"v1",
+	  "plugin_id":"prairie.anilist", "version":"1.0.0", "prairie_api_version":"v1",
 	  "capabilities":[{
 	    "type":"watch_sync_provider.v1", "id":"anilist", "display_name":"AniList",
 	    "watch_sync_provider":{
@@ -38,7 +38,7 @@ func TestLoadWatchSyncProvider(t *testing.T) {
 
 func TestValidateWatchSyncProviderRejectsMissingDescriptor(t *testing.T) {
 	manifest := &pluginv1.PluginManifest{
-		PluginId: "silo.invalid", Version: "1.0.0",
+		PluginId: "prairie.invalid", Version: "1.0.0",
 		Capabilities: []*pluginv1.CapabilityDescriptor{{Type: "watch_sync_provider.v1", Id: "invalid"}},
 	}
 	if err := publicmanifest.Validate(manifest); err == nil {
@@ -89,7 +89,7 @@ func TestValidateWatchSyncProviderAllowsUnknownFutureEnums(t *testing.T) {
 
 func validWatchSyncManifest() *pluginv1.PluginManifest {
 	return &pluginv1.PluginManifest{
-		PluginId: "silo.valid", Version: "1.0.0",
+		PluginId: "prairie.valid", Version: "1.0.0",
 		Capabilities: []*pluginv1.CapabilityDescriptor{{
 			Type: "watch_sync_provider.v1", Id: "valid",
 			WatchSyncProvider: &pluginv1.WatchSyncProviderDescriptor{
@@ -108,7 +108,7 @@ func validWatchSyncManifest() *pluginv1.PluginManifest {
 
 func TestValidateWatchSyncProviderRejectsDescriptorOnOtherCapability(t *testing.T) {
 	manifest := &pluginv1.PluginManifest{
-		PluginId: "silo.invalid", Version: "1.0.0",
+		PluginId: "prairie.invalid", Version: "1.0.0",
 		Capabilities: []*pluginv1.CapabilityDescriptor{{
 			Type: "event_consumer.v1", Id: "events",
 			WatchSyncProvider: &pluginv1.WatchSyncProviderDescriptor{MaxBatchSize: 1},

@@ -21,6 +21,6 @@ go build -o hello-scheduled-task ./examples/hello-scheduled-task
 ./hello-scheduled-task manifest
 ```
 
-## Install into Silo
+## Install into Prairie
 
 Upload the built binary through the admin plugin upload flow, or publish it through a plugin catalog entry that points at the binary URL and checksum.

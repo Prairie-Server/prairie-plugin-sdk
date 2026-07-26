@@ -5,14 +5,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func TestLoadAcceptsRequestRouterCapability(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [
 	    {"type": "request_router.v1", "id": "default", "display_name": "X", "description": "Y"}
 	  ]
@@ -31,9 +31,9 @@ func TestLoadAcceptsRequestRouterCapability(t *testing.T) {
 
 func TestLoadAcceptsImageResolverCapability(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [
 	    {
 	      "type": "image_resolver.v1",
@@ -60,9 +60,9 @@ func TestLoadAcceptsImageResolverCapability(t *testing.T) {
 
 func TestLoadRejectsUnknownCapabilityType(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [
 	    {"type": "banana.v9", "id": "w"}
 	  ]
