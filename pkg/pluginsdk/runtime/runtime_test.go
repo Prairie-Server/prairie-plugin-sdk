@@ -3,8 +3,8 @@ package runtime_test
 import (
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	runtime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	runtime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
 )
 
 func TestRuntimeBootstrapCompiles(t *testing.T) {

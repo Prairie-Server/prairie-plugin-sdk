@@ -3,14 +3,14 @@ package manifest_test
 import (
 	"testing"
 
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func TestLoadAcceptsScanSourceCapability(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id": "silo.example",
+	  "plugin_id": "prairie.example",
 	  "version": "1.0.0",
-	  "silo_api_version": "v1",
+	  "prairie_api_version": "v1",
 	  "capabilities": [
 	    {"type": "scan_source.v1", "id": "arr", "display_name": "X", "description": "Y"}
 	  ]

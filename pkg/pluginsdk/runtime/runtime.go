@@ -11,15 +11,15 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtimehost"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimehost"
 )
 
 const (
 	ProtocolVersion  = 1
-	MagicCookieKey   = "SILO_PLUGIN"
-	MagicCookieValue = "silo-rpc-plugin-v1"
-	PluginSetName    = "silo"
+	MagicCookieKey   = "PRAIRIE_PLUGIN"
+	MagicCookieValue = "prairie-rpc-plugin-v1"
+	PluginSetName    = "prairie"
 )
 
 type CapabilityServers struct {
@@ -189,7 +189,7 @@ func (p *GRPCPlugin) GRPCClient(_ context.Context, broker *plugin.GRPCBroker, co
 // the host-assigned broker stream ID for RuntimeHost. The singleton model is
 // appropriate because go-plugin runs exactly one plugin per process.
 //
-// The dialed *runtimehost.Client is cached: silo's bindRuntimeHost
+// The dialed *runtimehost.Client is cached: prairie's bindRuntimeHost
 // registers ONE go-plugin broker stream and AcceptAndServe handles a single
 // connection on it (multiplexing many gRPC RPCs). Re-dialing per call would
 // open a fresh stream the host isn't listening on, causing every call after
@@ -244,7 +244,7 @@ func (s *pluginHostState) host() *runtimehost.Client {
 // directly when they embed runtimedefault.Server.
 func SetHostBrokerID(id uint32) { pluginHost.setBrokerID(id) }
 
-// Host returns a runtimehost.Client connected to the silo host. Returns
+// Host returns a runtimehost.Client connected to the prairie host. Returns
 // nil before the host has invoked Runtime.BindHostBroker (i.e. very briefly
 // during plugin startup) or if the broker dial fails. Capability handlers
 // should treat nil as transient and either skip or surface a temporary error.

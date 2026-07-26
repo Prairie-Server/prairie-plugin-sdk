@@ -3,7 +3,7 @@ package manifest_test
 import (
 	"testing"
 
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func TestLoad_ParsesAuthModesAndIconURL(t *testing.T) {
@@ -11,7 +11,7 @@ func TestLoad_ParsesAuthModesAndIconURL(t *testing.T) {
 		"plugin_id": "test.plugin",
 		"version": "0.1.0",
 		"checksum": "0",
-		"silo_api_version": "v1",
+		"prairie_api_version": "v1",
 		"capabilities": [
 			{"type": "auth_provider.v1", "id": "main",
 			 "display_name": "Test",
@@ -40,7 +40,7 @@ func TestLoad_DefaultsAuthModesAbsent(t *testing.T) {
 		"plugin_id": "test.plugin",
 		"version": "0.1.0",
 		"checksum": "0",
-		"silo_api_version": "v1",
+		"prairie_api_version": "v1",
 		"capabilities": [
 			{"type": "auth_provider.v1", "id": "main", "display_name": "Test"}
 		]

@@ -1,4 +1,4 @@
-// Package capability exposes stable Silo plugin capability type strings.
+// Package capability exposes stable Prairie plugin capability type strings.
 package capability
 
 const (

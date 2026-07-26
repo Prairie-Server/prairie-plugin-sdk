@@ -1,4 +1,4 @@
-// Package httpclient is the shared outbound JSON-over-HTTP client for Silo
+// Package httpclient is the shared outbound JSON-over-HTTP client for Prairie
 // plugins that talk to a credentialed third-party API (Sonarr/Radarr, Seerr,
 // …). It carries an X-Api-Key header, caps the response body, and surfaces one
 // typed error (*StatusError) for any non-2xx. A fully-empty 2xx body is treated
