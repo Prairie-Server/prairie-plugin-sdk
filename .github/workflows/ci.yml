@@ -59,10 +59,11 @@ jobs:
       - name: Enforce coverage floor
         run: ./scripts/check-coverage.sh coverage.out
 
-- name: Build examples
-  run: |
-    go build ./examples/hello-scheduled-task
-    go build ./examples/hello-runtime-host
+      - name: Build examples
+        run: |
+          go build ./examples/hello-scheduled-task
+          go build ./examples/hello-runtime-host
+
       - name: Upload coverage profile
         if: always()
         uses: actions/upload-artifact@v5
