@@ -1,73 +1,72 @@
-        name: CI
+name: CI
 
-        on:
-          push:
-            branches: [main]
-          pull_request:
-          workflow_dispatch:
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
-        permissions:
-          contents: read
+permissions:
+  contents: read
 
-        concurrency:
-          group: ci-${{ github.workflow }}-${{ github.ref }}
-          cancel-in-progress: true
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+env:
+  COVER_MIN: "65"
+
+jobs:
+  lint:
+    name: Go lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          only-new-issues: true
+          args: --timeout=5m
+
+  test:
+    name: Go tests + coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests with coverage
         env:
-          COVER_MIN: "65"
+          GOWORK: off
+        run: go test $(go list ./pkg/pluginsdk/... | grep -v '/runtimedefault$') -count=1 -covermode=atomic -coverprofile=coverage.out
 
-        jobs:
-          lint:
-            name: Go lint
-            runs-on: ubuntu-latest
-            steps:
-              - uses: actions/checkout@v6
-                with:
-                  persist-credentials: false
-                  fetch-depth: 0
-
-              - uses: actions/setup-go@v5
-                with:
-                  go-version-file: go.mod
-                  cache: true
-
-              - name: golangci-lint
-                uses: golangci/golangci-lint-action@v8
-                with:
-                  version: latest
-                  only-new-issues: true
-                  args: --timeout=5m
-
-          test:
-            name: Go tests + coverage
-            runs-on: ubuntu-latest
-            steps:
-              - uses: actions/checkout@v6
-                with:
-                  persist-credentials: false
-
-              - uses: actions/setup-go@v5
-                with:
-                  go-version-file: go.mod
-                  cache: true
-
-              - name: Run tests with coverage
-                env:
-                  GOWORK: off
-                run: go test $(go list ./pkg/pluginsdk/... | grep -v '/runtimedefault$') -count=1 -covermode=atomic -coverprofile=coverage.out
-
-              - name: Enforce coverage floor
-                run: ./scripts/check-coverage.sh coverage.out
+      - name: Enforce coverage floor
+        run: ./scripts/check-coverage.sh coverage.out
 
 - name: Build examples
   run: |
     go build ./examples/hello-scheduled-task
     go build ./examples/hello-runtime-host
-
-              - name: Upload coverage profile
-                if: always()
-                uses: actions/upload-artifact@v5
-                with:
-                  name: coverage-out
-                  path: coverage.out
-                  if-no-files-found: ignore
+      - name: Upload coverage profile
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-out
+          path: coverage.out
+          if-no-files-found: ignore
