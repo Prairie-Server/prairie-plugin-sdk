@@ -151,17 +151,17 @@ func TestValidateCatalogPresentationAndURLs(t *testing.T) {
 	}
 
 	pres := &pluginv1.PluginPresentation{
-		DisplayName:          " Example ",
-		Summary:              "sum",
-		DescriptionMarkdown:  "desc",
-		SetupMarkdown:        "setup",
-		HomepageUrl:          "https://example.test",
-		SourceUrl:            "https://example.test/src",
-		SupportUrl:           "https://example.test/support",
-		ChangelogUrl:         "https://example.test/changelog",
-		PublisherName:        "Pub",
-		PublisherUrl:         "https://example.test/pub",
-		LicenseSpdx:          "MIT",
+		DisplayName:         " Example ",
+		Summary:             "sum",
+		DescriptionMarkdown: "desc",
+		SetupMarkdown:       "setup",
+		HomepageUrl:         "https://example.test",
+		SourceUrl:           "https://example.test/src",
+		SupportUrl:          "https://example.test/support",
+		ChangelogUrl:        "https://example.test/changelog",
+		PublisherName:       "Pub",
+		PublisherUrl:        "https://example.test/pub",
+		LicenseSpdx:         "MIT",
 	}
 	m := &pluginv1.PluginManifest{PluginId: "prairie.example", Version: "1.0.0", Presentation: pres}
 	if err := manifest.Validate(m); err == nil {
