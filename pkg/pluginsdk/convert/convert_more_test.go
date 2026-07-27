@@ -126,6 +126,34 @@ func TestDecodeCapability_FullMetadataAndErrors(t *testing.T) {
 			t.Fatal("expected error")
 		}
 	})
+
+	t.Run("nil metadata value becomes empty struct", func(t *testing.T) {
+		got, err := convert.DecodeCapability(convert.CapabilityRecord{
+			Metadata: map[string]any{
+				"metadata": nil,
+			},
+		})
+		if err != nil {
+			t.Fatalf("DecodeCapability: %v", err)
+		}
+		if got.GetMetadata() == nil || len(got.GetMetadata().GetFields()) != 0 {
+			t.Fatalf("metadata = %+v, want empty struct", got.GetMetadata())
+		}
+	})
+
+	t.Run("non map metadata value becomes empty struct", func(t *testing.T) {
+		got, err := convert.DecodeCapability(convert.CapabilityRecord{
+			Metadata: map[string]any{
+				"metadata": []any{"ignored"},
+			},
+		})
+		if err != nil {
+			t.Fatalf("DecodeCapability: %v", err)
+		}
+		if got.GetMetadata() == nil || len(got.GetMetadata().GetFields()) != 0 {
+			t.Fatalf("metadata = %+v, want empty struct", got.GetMetadata())
+		}
+	})
 }
 
 func TestCapabilityRecordsFromManifest_ErrorsAndExtras(t *testing.T) {

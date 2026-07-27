@@ -35,6 +35,12 @@ func TestValidateManifestNilAndEmptySchema(t *testing.T) {
 	if err := config.ValidateManifestGlobalValue(manifest, "bad", map[string]any{}); err == nil {
 		t.Fatal("expected invalid schema JSON error")
 	}
+	if err := config.ValidateValue(&pluginv1.ConfigSchema{
+		Key:        "bad-schema",
+		JsonSchema: `{"type":42}`,
+	}, "plugin global config", "bad-schema", map[string]any{}); err == nil {
+		t.Fatal("expected schema compile error")
+	}
 	if err := config.ValidateManifestUserValue(manifest, "prefs", map[string]any{"x": 1}); err != nil {
 		t.Fatalf("user value: %v", err)
 	}

@@ -46,6 +46,22 @@ func TestValidateWatchSyncProviderRejectsMissingDescriptor(t *testing.T) {
 	}
 }
 
+func TestValidateWatchSyncProviderRejectsUnsafeID(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].Id = "Not Safe"
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected unsafe capability id to fail")
+	}
+}
+
+func TestValidateWatchSyncProviderRejectsEmptyAuthMethods(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.AuthMethods = nil
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected empty auth methods to fail")
+	}
+}
+
 func TestValidateWatchSyncProviderRejectsUnspecifiedAuthMethod(t *testing.T) {
 	manifest := validWatchSyncManifest()
 	manifest.Capabilities[0].WatchSyncProvider.AuthMethods = []pluginv1.WatchSyncAuthMethod{
@@ -53,6 +69,22 @@ func TestValidateWatchSyncProviderRejectsUnspecifiedAuthMethod(t *testing.T) {
 	}
 	if err := publicmanifest.Validate(manifest); err == nil {
 		t.Fatal("expected unspecified auth method to fail")
+	}
+}
+
+func TestValidateWatchSyncProviderRejectsEmptyOperations(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.ExportWatched = false
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected no enabled operations to fail")
+	}
+}
+
+func TestValidateWatchSyncProviderRejectsInvalidBatchSize(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.MaxBatchSize = 101
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected invalid batch size to fail")
 	}
 }
 
@@ -71,6 +103,14 @@ func TestValidateWatchSyncProviderRejectsUnspecifiedMediaType(t *testing.T) {
 	}
 	if err := publicmanifest.Validate(manifest); err == nil {
 		t.Fatal("expected unspecified supported media type to fail")
+	}
+}
+
+func TestValidateWatchSyncProviderRejectsInvalidNamespace(t *testing.T) {
+	manifest := validWatchSyncManifest()
+	manifest.Capabilities[0].WatchSyncProvider.ExternalIdNamespaces = []string{"bad namespace"}
+	if err := publicmanifest.Validate(manifest); err == nil {
+		t.Fatal("expected invalid external id namespace to fail")
 	}
 }
 

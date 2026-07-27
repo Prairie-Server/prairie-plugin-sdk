@@ -60,3 +60,12 @@ func TestLoadWithChecksumAppliesVersionOverrideBeforeValidation(t *testing.T) {
 		t.Fatalf("version override: got %q want 9.9.9", m.GetVersion())
 	}
 }
+
+func TestLoadWithChecksumRejectsInvalidManifest(t *testing.T) {
+	if _, err := LoadWithChecksum([]byte(`not-json`), ""); err == nil {
+		t.Fatal("expected decode error")
+	}
+	if _, err := LoadWithChecksum([]byte(`{"plugin_id":"prairie.invalid"}`), ""); err == nil {
+		t.Fatal("expected validation error")
+	}
+}
