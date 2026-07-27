@@ -14,25 +14,25 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  COVER_MIN: "65"
+  COVER_MIN: "90"
 
 jobs:
   lint:
     name: Go lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v8
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
           only-new-issues: true
@@ -42,19 +42,28 @@ jobs:
     name: Go tests + coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
 
+      # Coverage excludes pure go-plugin host glue packages that cannot be
+      # meaningfully unit-tested without a full plugin.Serve/GRPC broker:
+      #   - runtimedefault: thin Runtime server embed for plugins
+      #   - runtime: Handshake/Serve/GRPCPlugin wiring + process-singleton Host()
+      # Capability registration and ServeManifest still have unit tests; those
+      # packages are run below without contributing to the coverage profile.
       - name: Run tests with coverage
         env:
           GOWORK: off
-        run: go test $(go list ./pkg/pluginsdk/... | grep -v '/runtimedefault$') -count=1 -covermode=atomic -coverprofile=coverage.out
+        run: |
+          pkgs=$(go list ./pkg/pluginsdk/... | grep -vE '/(runtimedefault|runtime)$')
+          go test $pkgs -count=1 -covermode=atomic -coverprofile=coverage.out
+          go test ./pkg/pluginsdk/runtime/ -count=1
 
       - name: Enforce coverage floor
         run: ./scripts/check-coverage.sh coverage.out
@@ -66,7 +75,7 @@ jobs:
 
       - name: Upload coverage profile
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-out
           path: coverage.out

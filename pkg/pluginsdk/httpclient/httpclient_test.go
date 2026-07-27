@@ -16,6 +16,36 @@ func TestDefaultHTTPClientUsesRaisedTimeout(t *testing.T) {
 	}
 }
 
+func TestStatusErrorEmptyMessageAndNoContent(t *testing.T) {
+	if got := (&StatusError{StatusCode: 502}).Error(); !strings.Contains(got, "502") {
+		t.Fatalf("empty body error = %q", got)
+	}
+	if got := (&StatusError{StatusCode: 502, Body: "raw"}).Error(); !strings.Contains(got, "raw") {
+		t.Fatalf("body fallback error = %q", got)
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer srv.Close()
+	var dest map[string]any
+	if err := New(srv.URL, "k", nil).GetJSON(context.Background(), "/x", &dest); err != nil {
+		t.Fatalf("NoContent with dest: %v", err)
+	}
+
+	// Unencodable body (channel) hits the encode-request path.
+	if err := New(srv.URL, "k", nil).PostJSON(context.Background(), "/x", make(chan int), nil); err == nil {
+		t.Fatal("expected encode error")
+	}
+
+	// Canceled context hits the request-failed path.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := New(srv.URL, "k", nil).GetJSON(ctx, "/x", nil); err == nil {
+		t.Fatal("expected canceled request error")
+	}
+}
+
 func TestPostJSONSetsApiKeyAndDecodes(t *testing.T) {
 	var key, method, ct string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
