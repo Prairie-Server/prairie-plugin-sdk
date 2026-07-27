@@ -174,6 +174,9 @@ func TestClientRPCErrorPaths(t *testing.T) {
 	if _, err := c.CallPluginHTTP(ctx, runtimehost.CallPluginHTTPRequest{InstallationID: 1, Path: "/x"}); err == nil {
 		t.Fatal("CallPluginHTTP")
 	}
+	if _, err := c.MintScopedStream(ctx, runtimehost.ScopedStreamRequest{MediaFileID: 1}); err == nil {
+		t.Fatal("MintScopedStream")
+	}
 	if _, err := c.ResolveCatalogImageURLs(ctx, []string{"a"}, ""); err == nil {
 		t.Fatal("ResolveCatalogImageURLs")
 	}
