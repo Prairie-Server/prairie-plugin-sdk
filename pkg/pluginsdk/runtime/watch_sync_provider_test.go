@@ -3,9 +3,9 @@ package runtime_test
 import (
 	"testing"
 
+	"github.com/hashicorp/go-plugin"
 	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	runtime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
-	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 )
 
