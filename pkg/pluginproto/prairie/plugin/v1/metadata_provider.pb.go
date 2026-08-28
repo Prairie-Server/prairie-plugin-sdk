@@ -1687,6 +1687,7 @@ type ImageRecord struct {
 	Width         int32                  `protobuf:"varint,4,opt,name=width,proto3" json:"width,omitempty"`
 	Height        int32                  `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
 	Metadata      *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	SeasonNumber  *int32                 `protobuf:"varint,7,opt,name=season_number,json=seasonNumber,proto3,oneof" json:"season_number,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1763,12 +1764,22 @@ func (x *ImageRecord) GetMetadata() *structpb.Struct {
 	return nil
 }
 
+func (x *ImageRecord) GetSeasonNumber() int32 {
+	if x != nil && x.SeasonNumber != nil {
+		return *x.SeasonNumber
+	}
+	return 0
+}
+
 type GetImagesRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProviderId    string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	ItemType      string                 `protobuf:"bytes,2,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"`
-	ProviderIds   *structpb.Struct       `protobuf:"bytes,3,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
-	Language      string                 `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	ProviderId  string                 `protobuf:"bytes,1,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	ItemType    string                 `protobuf:"bytes,2,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"`
+	ProviderIds *structpb.Struct       `protobuf:"bytes,3,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
+	Language    string                 `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
+	// When set for series items, providers return the exact season artwork gallery
+	// via ImageRecord.season_number rather than assume a filtered response.
+	SeasonNumber  *int32 `protobuf:"varint,5,opt,name=season_number,json=seasonNumber,proto3,oneof" json:"season_number,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1829,6 +1840,13 @@ func (x *GetImagesRequest) GetLanguage() string {
 		return x.Language
 	}
 	return ""
+}
+
+func (x *GetImagesRequest) GetSeasonNumber() int32 {
+	if x != nil && x.SeasonNumber != nil {
+		return *x.SeasonNumber
+	}
+	return 0
 }
 
 type GetImagesResponse struct {
@@ -2236,20 +2254,24 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\fprovider_ids\x18\x03 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
 	"\blanguage\x18\x04 \x01(\tR\blanguage\"S\n" +
 	"\x13GetEpisodesResponse\x12<\n" +
-	"\bepisodes\x18\x01 \x03(\v2 .prairie.plugin.v1.EpisodeRecordR\bepisodes\"\xb2\x01\n" +
+	"\bepisodes\x18\x01 \x03(\v2 .prairie.plugin.v1.EpisodeRecordR\bepisodes\"\xee\x01\n" +
 	"\vImageRecord\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12\x1a\n" +
 	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x14\n" +
 	"\x05width\x18\x04 \x01(\x05R\x05width\x12\x16\n" +
 	"\x06height\x18\x05 \x01(\x05R\x06height\x123\n" +
-	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xa8\x01\n" +
+	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12(\n" +
+	"\rseason_number\x18\a \x01(\x05H\x00R\fseasonNumber\x88\x01\x01B\x10\n" +
+	"\x0e_season_number\"\xe4\x01\n" +
 	"\x10GetImagesRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
 	"\titem_type\x18\x02 \x01(\tR\bitemType\x12:\n" +
 	"\fprovider_ids\x18\x03 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
-	"\blanguage\x18\x04 \x01(\tR\blanguage\"K\n" +
+	"\blanguage\x18\x04 \x01(\tR\blanguage\x12(\n" +
+	"\rseason_number\x18\x05 \x01(\x05H\x00R\fseasonNumber\x88\x01\x01B\x10\n" +
+	"\x0e_season_number\"K\n" +
 	"\x11GetImagesResponse\x126\n" +
 	"\x06images\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.ImageRecordR\x06images\"F\n" +
 	"\x16ResolveImageURLRequest\x12\x12\n" +
@@ -2383,6 +2405,8 @@ func file_prairie_plugin_v1_metadata_provider_proto_init() {
 	if File_prairie_plugin_v1_metadata_provider_proto != nil {
 		return
 	}
+	file_prairie_plugin_v1_metadata_provider_proto_msgTypes[18].OneofWrappers = []any{}
+	file_prairie_plugin_v1_metadata_provider_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
