@@ -10,6 +10,12 @@ import (
 	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 )
 
+// capabilityUnmarshal decodes stored capability metadata tolerantly. Unknown
+// fields and enum names are dropped rather than rejected, so a node on an older
+// SDK, in a mixed-version cluster sharing one database, can still load
+// descriptors written by a newer one.
+var capabilityUnmarshal = protojson.UnmarshalOptions{DiscardUnknown: true}
+
 type CapabilityRecord struct {
 	Type     string
 	ID       string
@@ -70,10 +76,21 @@ func DecodeCapability(record CapabilityRecord) (*pluginv1.CapabilityDescriptor, 
 			return nil, fmt.Errorf("encode watch sync provider descriptor: %w", err)
 		}
 		var typed pluginv1.WatchSyncProviderDescriptor
-		if err := protojson.Unmarshal(data, &typed); err != nil {
+		if err := capabilityUnmarshal.Unmarshal(data, &typed); err != nil {
 			return nil, fmt.Errorf("decode watch sync provider descriptor: %w", err)
 		}
 		descriptor.WatchSyncProvider = &typed
+	}
+	if requestRouter, ok := record.Metadata["request_router"]; ok {
+		data, err := json.Marshal(requestRouter)
+		if err != nil {
+			return nil, fmt.Errorf("encode request router descriptor: %w", err)
+		}
+		var typed pluginv1.RequestRouterDescriptor
+		if err := capabilityUnmarshal.Unmarshal(data, &typed); err != nil {
+			return nil, fmt.Errorf("decode request router descriptor: %w", err)
+		}
+		descriptor.RequestRouter = &typed
 	}
 	if configSchema, ok := record.Metadata["config_schema"]; ok {
 		schemas, err := decodeConfigSchemas(configSchema)
@@ -122,16 +139,42 @@ func capabilityMetadata(descriptor *pluginv1.CapabilityDescriptor) (map[string]a
 		}
 		metadata["watch_sync_provider"] = value
 	}
+	if descriptor.GetRequestRouter() != nil {
+		data, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(descriptor.GetRequestRouter())
+		if err != nil {
+			return nil, fmt.Errorf("encode request router descriptor: %w", err)
+		}
+		var value map[string]any
+		if err := json.Unmarshal(data, &value); err != nil {
+			return nil, fmt.Errorf("decode request router descriptor JSON: %w", err)
+		}
+		metadata["request_router"] = value
+	}
 	if len(descriptor.GetConfigSchema()) > 0 {
 		schemas := make([]map[string]any, 0, len(descriptor.GetConfigSchema()))
 		for _, schema := range descriptor.GetConfigSchema() {
-			schemas = append(schemas, map[string]any{
-				"key":         schema.GetKey(),
-				"title":       schema.GetTitle(),
-				"description": schema.GetDescription(),
-				"json_schema": schema.GetJsonSchema(),
-				"required":    schema.GetRequired(),
-			})
+			if schema == nil {
+				schemas = append(schemas, map[string]any{})
+				continue
+			}
+			data, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(schema)
+			if err != nil {
+				return nil, fmt.Errorf("encode capability config schema: %w", err)
+			}
+			var value map[string]any
+			if err := json.Unmarshal(data, &value); err != nil {
+				return nil, fmt.Errorf("decode capability config schema JSON: %w", err)
+			}
+			// CapabilityRecord.Metadata is a public compatibility boundary. The
+			// original scalar-only encoding always emitted these keys, including
+			// required=false; protojson omits default-valued fields unless they are
+			// restored explicitly.
+			value["key"] = schema.GetKey()
+			value["title"] = schema.GetTitle()
+			value["description"] = schema.GetDescription()
+			value["json_schema"] = schema.GetJsonSchema()
+			value["required"] = schema.GetRequired()
+			schemas = append(schemas, value)
 		}
 		metadata["config_schema"] = schemas
 	}
@@ -157,19 +200,13 @@ func decodeConfigSchemas(value any) ([]*pluginv1.ConfigSchema, error) {
 	schemas := make([]*pluginv1.ConfigSchema, 0, len(entries))
 	for _, entry := range entries {
 		rawSchema := toStringAnyMap(entry)
-		jsonData, err := protojson.MarshalOptions{UseProtoNames: true}.Marshal(&pluginv1.ConfigSchema{
-			Key:         stringValue(rawSchema["key"]),
-			Title:       stringValue(rawSchema["title"]),
-			Description: stringValue(rawSchema["description"]),
-			JsonSchema:  stringValue(rawSchema["json_schema"]),
-			Required:    boolValue(rawSchema["required"]),
-		})
+		jsonData, err := json.Marshal(rawSchema)
 		if err != nil {
-			return nil, fmt.Errorf("encode config schema: %w", err)
+			return nil, fmt.Errorf("encode capability config schema: %w", err)
 		}
 		var schema pluginv1.ConfigSchema
-		if err := protojson.Unmarshal(jsonData, &schema); err != nil {
-			return nil, fmt.Errorf("decode config schema: %w", err)
+		if err := capabilityUnmarshal.Unmarshal(jsonData, &schema); err != nil {
+			return nil, fmt.Errorf("decode capability config schema: %w", err)
 		}
 		schemas = append(schemas, &schema)
 	}
@@ -205,14 +242,4 @@ func toStringAnyMap(value any) map[string]any {
 	default:
 		return map[string]any{}
 	}
-}
-
-func stringValue(value any) string {
-	text, _ := value.(string)
-	return text
-}
-
-func boolValue(value any) bool {
-	flag, _ := value.(bool)
-	return flag
 }

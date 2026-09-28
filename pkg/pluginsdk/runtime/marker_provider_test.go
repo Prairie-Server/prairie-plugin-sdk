@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"google.golang.org/grpc"
+
 	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	runtime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
-	"google.golang.org/grpc"
 )
 
 type stubMarkerProvider struct{}

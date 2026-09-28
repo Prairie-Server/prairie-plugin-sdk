@@ -2,7 +2,11 @@
 
 Public Go SDK for building Prairie plugins. **Not a runtime plugin** — this is a library that plugin authors depend on via `go.mod`.
 
-`prairie-plugin-sdk` is the source of truth for the plugin authoring contract. First-party consumers (Prairie host, `prairie-plugin-tmdb`, `prairie-plugin-metadb`, every other plugin in this repo) pin tagged semver releases. Local multi-repo workspaces may use `go.work` or a temporary `replace`, but CI and release builds resolve the SDK from a published module tag.
+`prairie-plugin-sdk` is the source of truth for the plugin authoring contract.
+First-party consumers—including the Prairie host and the separate metadata,
+marker, autoscan, and watch-provider plugin repositories—pin tagged semantic
+versions. Local multi-repository workspaces may use `go.work`, but CI and
+release builds resolve the SDK from a published module tag.
 
 ## Packages
 
@@ -10,6 +14,8 @@ Public Go SDK for building Prairie plugins. **Not a runtime plugin** — this is
 - `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
 - `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
 - `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
+- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
 - `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
 - `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding.
 - `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
@@ -22,6 +28,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `metadata_provider.v1`
 - `marker_provider.v1`
 - `media_analyzer.v1`
+- `image_resolver.v1`
 - `scheduled_task.v1`
 - `event_consumer.v1`
 - `auth_provider.v1`
@@ -29,6 +36,7 @@ The SDK ships protobuf contracts for every capability the host understands:
 - `request_router.v1`
 - `scan_source.v1`
 - `watch_sync_provider.v1`
+- `network_access_provider.v1`
 - `audiobook_backend.v1`
 - `ebook_backend.v1`
 
@@ -43,7 +51,7 @@ A typical plugin:
 3. Supports the `manifest` subcommand via `pkg/pluginsdk/runtime` so the host can introspect manifests without launching the plugin.
 4. Is installed either from a catalog or by uploading a trusted binary to a Prairie server.
 
-For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host).
+For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host). For a stub overlay-network provider, see [`examples/hello-network-access`](examples/hello-network-access).
 
 ## Operator-facing presentation
 
@@ -122,19 +130,58 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 
 The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
 
+## Request routers
+
+`request_router.v1` lets the host hand a media request to a download backend
+such as Sonarr, Radarr, or Seerr. The host owns the request lifecycle, policy,
+and quality governance; the plugin routes the request to a configured
+connection and reports its status.
+
+A series request may name seasons in `RequestDescriptor.seasons`. Season `0`
+is Specials, and an empty list means the whole series. A plugin that fulfils
+seasons individually declares it in its manifest:
+
+```json
+{
+  "type": "request_router.v1",
+  "id": "arr",
+  "request_router": { "supports_seasons": true }
+}
+```
+
+A declaring plugin must acquire only the requested seasons. When the series
+already exists upstream, it adds those seasons to what is already tracked and
+leaves the other seasons alone, so a request for season 4 never stops tracking
+seasons 1–3. Repeating a request must converge rather than add the series
+again. `CheckStatus` receives the same descriptor, so status can cover the
+requested seasons.
+
+Plugins without the flag, including every plugin built before it existed, keep
+today's whole-series behaviour. The host requests only the missing seasons of a
+series it already has from plugins that declare `supports_seasons`, because
+any other plugin would add the whole series again.
+
 ## Watch sync providers
 
 `watch_sync_provider.v1` lets external plugins participate in Prairie's host-owned
 watch-provider pipeline. The host owns encrypted per-profile credentials,
-OAuth state, durable desired-state events, retries, ordering, and
-reconciliation. Plugins are stateless protocol adapters: they receive secrets
-only for the duration of an RPC, map rich movie/episode identity to an upstream
-service, and return typed apply or retry outcomes.
+authorization-code and device-code flow state, durable desired-state events,
+retries, ordering, and reconciliation. Plugins are stateless protocol adapters:
+they receive secrets only for the duration of an RPC, map rich movie, episode,
+and series identity to an upstream service, and return typed apply or retry
+outcomes.
 
 Watch-sync plugins must not persist or log credentials, authorization codes,
 provider flow state, or secret configuration. `ApplyEvents` is an at-least-once
 contract; plugins must treat `event_id` as stable across retries and implement
-convergent desired-state updates rather than increments.
+convergent desired-state updates rather than increments. That rule also applies
+to scrobble stops: replaying the same event ID must not create another play.
+For playback events, `completed` is the host's authoritative watched decision;
+plugins must not infer completion from `watch_history_id` or percentage alone.
+Metadata consumers must likewise check optional `season_number` presence: zero
+means Specials, while absence means no season scope. See
+[compatibility guidance](docs/compatibility.md#presence-sensitive-optional-fields)
+for the request and record rules.
 
 Authenticated RPCs receive the same host-owned capability, configuration, and
 credential data through `WatchSyncAuthenticatedContext`. The context exists
@@ -144,6 +191,29 @@ patches. The host validates and persists them before consuming results, pages,
 or faults—even when the response contains a fault. If credential persistence
 fails, the host commits no other response data.
 
+Device-code plugins register both `WatchSyncProvider` and the separate
+`WatchSyncDeviceAuthorizationService`. Keeping device authorization in a
+second service preserves source compatibility for v0.12 Go providers that
+implemented `WatchSyncProviderServer` directly. Register it without changing
+the released `CapabilityServers` shape:
+
+```go
+runtime.ServeManifestWithOptions(manifestJSON, version, servers,
+    runtime.WithWatchSyncDeviceAuthorization(deviceAuthServer))
+```
+
+A pending poll may replace its opaque provider state, polling interval, and
+expiry; the host encrypts and persists those values before the next poll.
+Those updates remain part of the same user challenge, so the original user code
+and verification URL must stay valid until expiry. An explicitly empty
+`provider_state` clears the prior state; omitting it retains the prior state.
+
+`WatchSyncProviderConfig` is keyed by manifest config key and field, for example
+`provider.client_id`. Scalar values are sent as strings and structured values
+as JSON. Fields marked secret in the manifest are sent through `secret_values`;
+undeclared fields are treated as secret. Plugins must accept configuration from
+the RPC context rather than relying on process-global state.
+
 Descriptors and events use the shared `WatchSyncMediaType` enum so advertised
 support and delivered media cannot drift between string conventions. Apply
 results pair their delivery status with a typed fault: successful results omit
@@ -151,13 +221,49 @@ the fault, temporary retries use `TEMPORARY`, rate limits use `RATE_LIMITED`
 with an optional delay, and rejected events use a non-retryable fault code.
 Connection-wide faults such as invalid credentials belong on the RPC response.
 
+A `SERIES` media item describes the show itself: `external_ids`, `title`, and
+`year` identify the series, and the `series_*`, season, and episode fields are
+unused.
+
+Ratings are integers from 1 to 10 in every rating field; the host owns
+conversion to its own display scale. Plugins convert between the provider's
+native scale and 1–10 by rounding half up and clamping to the valid range.
+`import_ratings` means `ListRemoteState` returns `RATING` states, and
+`export_ratings` means `ApplyEvents` handles both `SET_RATING` and
+`REMOVE_RATING`; there is no separate removal flag. `SET_RATING` carries the
+value in the event's `rating` field, where zero is never valid. Both operations
+are convergent desired-state writes: resending the same value, or removing a
+rating that is already absent, must return `APPLIED` or `NO_CHANGE`, never a
+fault. The host sends rating events only for media types listed in
+`supported_media_types`, and manifest validation requires that list to include
+`MOVIE` or `SERIES` when either ratings flag is set.
+
 `ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
 play count and last-watched time; `progress` carries a fractional percentage and
-paused time. An item may contain either or both. The host keeps the request
+paused time; `favorite` and `watchlist` carry list membership; `rating` carries
+a 1–10 rating and when it was set. An item may contain multiple state families.
+The host requests only the state families a sync phase needs, keeps that phase's
 `cursor` fixed while following ephemeral page tokens, commits each successful
 page, and only then persists the final `next_cursor`. `complete_snapshot=true`
 means the traversal is authoritative; when false, missing items are not
-deletions.
+deletions. In a complete `RATING` traversal, an item absent from the snapshot is
+unrated. An incremental favorite, watchlist, or rating removal is an item whose
+corresponding state has `removed=true`; it may omit `media` when
+`provider_item_key` identifies a record previously returned to the host. When
+`provides_watchlist_order=true`, watchlist traversals must be complete snapshots
+and the order of returned watchlist states is the remote list order. Event
+`list_position` is presence-aware: an explicit zero means the first position,
+while omission means no requested ordering.
+
+## Network access providers
+
+`network_access_provider.v1` lets a resident plugin give the deployment an
+overlay-network identity (Tailscale, NetBird) and reverse-proxy overlay
+traffic to the host's local listeners. The host starts these plugins at boot,
+restarts them on crash, stores their per-instance state encrypted, and
+aggregates status across the API server and proxy nodes. See
+[docs/network-access-provider.md](docs/network-access-provider.md) for the
+proxy contract, `GetHostInfo` fields, instance state, and enrollment rules.
 
 ## Scan sources
 
@@ -192,9 +298,27 @@ Before downstream repos stop using local workspace overrides, the required SDK c
 ## Build & test
 
 ```bash
-make proto       # regenerate protobuf code (uses locally vendored buf under ./bin/)
+make proto       # regenerate protobuf code (installs tools under ./bin/ as needed)
 go test ./...
 ```
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and
+[docs/compatibility.md](docs/compatibility.md) before opening a pull request.
+Public Go, protobuf, runtime, and manifest changes should start as an issue and
+identify affected downstream repositories.
+
+## Naming and branding
+
+Give your plugin its own name and mention Prairie in the summary, for example
+"Trakt sync plugin for Prairie". Repository and package names such as
+`prairie-plugin-trakt` are fine, since "prairie" only describes what the code plugs
+into. Avoid "Prairie[word]" product names such as PrairieTrakt, which read as
+official, and do not use the Prairie logo as your plugin's icon. Set
+`publisher_name` to yourself, not "Prairie", unless the plugin is published by the
+project. The full guidance, including what needs no permission, is at
+<https://prairieserver.org/brand>.
 
 ## License
 

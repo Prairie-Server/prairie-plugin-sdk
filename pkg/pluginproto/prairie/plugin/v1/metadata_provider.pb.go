@@ -1680,14 +1680,18 @@ func (x *GetEpisodesResponse) GetEpisodes() []*EpisodeRecord {
 }
 
 type ImageRecord struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Kind          string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
-	Url           string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
-	Language      string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`
-	Width         int32                  `protobuf:"varint,4,opt,name=width,proto3" json:"width,omitempty"`
-	Height        int32                  `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	SeasonNumber  *int32                 `protobuf:"varint,7,opt,name=season_number,json=seasonNumber,proto3,oneof" json:"season_number,omitempty"`
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Kind     string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Url      string                 `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
+	Language string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`
+	Width    int32                  `protobuf:"varint,4,opt,name=width,proto3" json:"width,omitempty"`
+	Height   int32                  `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
+	Metadata *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// Present only when the image is confirmed to belong to one exact season.
+	// Season zero represents Specials, so presence must not be inferred from the
+	// numeric value. Plugins should populate this field whenever the season is
+	// known, even when the request was already season-scoped.
+	SeasonNumber  *int32 `protobuf:"varint,7,opt,name=season_number,json=seasonNumber,proto3,oneof" json:"season_number,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1777,7 +1781,10 @@ type GetImagesRequest struct {
 	ItemType    string                 `protobuf:"bytes,2,opt,name=item_type,json=itemType,proto3" json:"item_type,omitempty"`
 	ProviderIds *structpb.Struct       `protobuf:"bytes,3,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
 	Language    string                 `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
-	// When set for series items, providers return the exact season artwork gallery
+	// Present only when requesting artwork for a specific TV season.
+	// Season zero represents Specials, so presence must not be inferred from
+	// the numeric value. This scope is a request, not a guarantee: plugins that
+	// can filter by season should do so, but hosts must verify season attribution
 	// via ImageRecord.season_number rather than assume a filtered response.
 	SeasonNumber  *int32 `protobuf:"varint,5,opt,name=season_number,json=seasonNumber,proto3,oneof" json:"season_number,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1894,9 +1901,15 @@ func (x *GetImagesResponse) GetImages() []*ImageRecord {
 }
 
 type ResolveImageURLRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Path          string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Variant       string                 `protobuf:"bytes,2,opt,name=variant,proto3" json:"variant,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Path  string                 `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	// Semantic size hint, not an exact pixel contract. Canonical values, smallest
+	// to largest: "card", "featured", "large", "full", "original". Empty means
+	// the plugin default. The vocabulary is open and grows additively, so a
+	// plugin receiving an unknown variant must degrade gracefully to its nearest
+	// supported size and must not return an error. See
+	// pkg/pluginsdk/imagevariant for constants and the full rules.
+	Variant       string `protobuf:"bytes,2,opt,name=variant,proto3" json:"variant,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1990,9 +2003,15 @@ func (x *ResolveImageURLResponse) GetUrl() string {
 }
 
 type ResolveImageURLsRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Paths         []string               `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
-	Variant       string                 `protobuf:"bytes,2,opt,name=variant,proto3" json:"variant,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Paths []string               `protobuf:"bytes,1,rep,name=paths,proto3" json:"paths,omitempty"`
+	// Semantic size hint applied to every path in this request. Canonical values,
+	// smallest to largest: "card", "featured", "large", "full", "original". Empty
+	// means the plugin default. The vocabulary is open and grows additively, so a
+	// plugin receiving an unknown variant must degrade gracefully to its nearest
+	// supported size and must not return an error. See
+	// pkg/pluginsdk/imagevariant for constants and the full rules.
+	Variant       string `protobuf:"bytes,2,opt,name=variant,proto3" json:"variant,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
