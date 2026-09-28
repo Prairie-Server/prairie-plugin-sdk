@@ -5,6 +5,8 @@ package prairie.plugin.v1;
 option go_package = "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1";
 
 import "google/protobuf/struct.proto";
+import "prairie/plugin/v1/network_access_provider.proto";
+import "prairie/plugin/v1/request_router.proto";
 import "prairie/plugin/v1/watch_sync_provider.proto";
 
 message SupportedPlatform {
@@ -142,6 +144,16 @@ message CapabilityDescriptor {
   // of type "watch_sync_provider.v1". Keeping this typed lets the host build
   // connection and authorization UI without launching the plugin.
   WatchSyncProviderDescriptor watch_sync_provider = 10;
+
+  // Typed network-access contract metadata. Only meaningful for capabilities
+  // of type "network_access_provider.v1". The host lists available overlay
+  // providers from this descriptor without launching the plugin.
+  NetworkAccessProviderDescriptor network_access_provider = 11;
+
+  // Typed request-router contract metadata. Only meaningful for capabilities
+  // of type "request_router.v1". Optional: an absent descriptor declares no
+  // optional request-router features.
+  RequestRouterDescriptor request_router = 12;
 }
 
 // PluginPresentation describes a plugin for server operators and links them to

@@ -113,6 +113,12 @@ func Validate(manifest *pluginv1.PluginManifest) error {
 		if err := validateWatchSyncCapability(capability); err != nil {
 			return err
 		}
+		if err := validateNetworkAccessCapability(capability); err != nil {
+			return err
+		}
+		if err := validateRequestRouterCapability(capability); err != nil {
+			return err
+		}
 	}
 	for _, schema := range manifest.GlobalConfigSchema {
 		if err := validateConfigSchema(schema); err != nil {
@@ -156,8 +162,17 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 			return fmt.Errorf("plugin capability %q: watch sync auth method cannot be unspecified", descriptor.GetId())
 		}
 	}
-	if !watchSync.GetExportWatched() && !watchSync.GetExportUnwatched() && !watchSync.GetImportWatched() && !watchSync.GetImportProgress() {
+	if !watchSync.GetExportWatched() && !watchSync.GetExportUnwatched() &&
+		!watchSync.GetImportWatched() && !watchSync.GetImportProgress() &&
+		!watchSync.GetImportFavorites() && !watchSync.GetExportFavorites() &&
+		!watchSync.GetRemoveFavorites() && !watchSync.GetImportWatchlist() &&
+		!watchSync.GetExportWatchlist() && !watchSync.GetRemoveWatchlist() &&
+		!watchSync.GetScrobblePlayback() &&
+		!watchSync.GetImportRatings() && !watchSync.GetExportRatings() {
 		return fmt.Errorf("plugin capability %q: at least one watch sync operation is required", descriptor.GetId())
+	}
+	if watchSync.GetProvidesWatchlistOrder() && !watchSync.GetImportWatchlist() {
+		return fmt.Errorf("plugin capability %q: watchlist order requires watchlist import", descriptor.GetId())
 	}
 	if watchSync.GetMaxBatchSize() < 1 || watchSync.GetMaxBatchSize() > 100 {
 		return fmt.Errorf("plugin capability %q: watch sync max_batch_size must be between 1 and 100", descriptor.GetId())
@@ -170,10 +185,58 @@ func validateWatchSyncCapability(descriptor *pluginv1.CapabilityDescriptor) erro
 			return fmt.Errorf("plugin capability %q: watch sync media type cannot be unspecified", descriptor.GetId())
 		}
 	}
+	// supported_media_types is non-empty here; an empty list is rejected above.
+	if (watchSync.GetImportRatings() || watchSync.GetExportRatings()) &&
+		!watchSyncSupportsRatedMediaType(watchSync.GetSupportedMediaTypes()) {
+		return fmt.Errorf("plugin capability %q: watch sync ratings require a MOVIE or SERIES supported media type", descriptor.GetId())
+	}
 	for _, namespace := range watchSync.GetExternalIdNamespaces() {
 		if !watchSyncSlugPattern.MatchString(namespace) {
 			return fmt.Errorf("plugin capability %q: invalid external id namespace %q", descriptor.GetId(), namespace)
 		}
+	}
+	return nil
+}
+
+// watchSyncSupportsRatedMediaType reports whether a ratings-capable provider
+// lists a media type the host can rate. A value this SDK does not define counts
+// as rateable so that a descriptor built against a newer SDK stays valid here.
+func watchSyncSupportsRatedMediaType(mediaTypes []pluginv1.WatchSyncMediaType) bool {
+	for _, mediaType := range mediaTypes {
+		switch mediaType {
+		case pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE,
+			pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES:
+			return true
+		}
+		if _, known := pluginv1.WatchSyncMediaType_name[int32(mediaType)]; !known {
+			return true
+		}
+	}
+	return false
+}
+
+func validateNetworkAccessCapability(descriptor *pluginv1.CapabilityDescriptor) error {
+	networkAccess := descriptor.GetNetworkAccessProvider()
+	if descriptor.GetType() != capability.NetworkAccessProvider {
+		if networkAccess != nil {
+			return fmt.Errorf("plugin capability %q: network_access_provider descriptor requires type %q", descriptor.GetId(), capability.NetworkAccessProvider)
+		}
+		return nil
+	}
+	if networkAccess == nil {
+		return fmt.Errorf("plugin capability %q: network_access_provider descriptor is required", descriptor.GetId())
+	}
+	if !watchSyncSlugPattern.MatchString(networkAccess.GetProvider()) {
+		return fmt.Errorf("plugin capability %q: network access provider must be a path-safe lowercase slug", descriptor.GetId())
+	}
+	return nil
+}
+
+// validateRequestRouterCapability keeps the descriptor optional so request
+// routers built before it existed stay valid.
+func validateRequestRouterCapability(descriptor *pluginv1.CapabilityDescriptor) error {
+	if descriptor.GetType() != capability.RequestRouter && descriptor.GetRequestRouter() != nil {
+		return fmt.Errorf("plugin capability %q: request_router descriptor requires type %q", descriptor.GetId(), capability.RequestRouter)
 	}
 	return nil
 }
