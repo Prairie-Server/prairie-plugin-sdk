@@ -110,7 +110,7 @@ func (c *Client) DoJSON(ctx context.Context, method, path string, body, dest any
 	if err != nil {
 		return fmt.Errorf("httpclient: request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		raw, _ := io.ReadAll(io.LimitReader(resp.Body, maxResponseBody))

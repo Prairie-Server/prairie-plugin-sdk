@@ -295,10 +295,13 @@ func (s *pluginHostState) dialLocked() {
 	s.client = runtimehost.NewClient(conn)
 }
 
+// host returns the client dialed at bind time. It never dials: if the
+// bind-time dial failed, the host's connection info has already expired (see
+// setBrokerID), so a retry here could only fail again, and it would block every
+// concurrent Host() caller on s.mu for up to go-plugin's five-second wait.
 func (s *pluginHostState) host() *runtimehost.Client {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.dialLocked()
 	return s.client
 }
 
@@ -311,11 +314,11 @@ func SetHostBrokerID(id uint32) { pluginHost.setBrokerID(id) }
 // Host returns a runtimehost.Client connected to the prairie host. Returns
 // nil before the host has invoked Runtime.BindHostBroker (i.e. very briefly
 // during plugin startup) or if the broker dial failed at bind time.
-// Capability handlers should treat nil as transient and either skip or
+// Capability handlers should treat nil as unavailable and either skip or
 // surface a temporary error.
 //
-// The first successful call dials the host broker stream and caches the
-// *runtimehost.Client; later calls reuse the same client.
+// The client is dialed once, when the host binds the broker stream, and every
+// call returns that same *runtimehost.Client. Host never dials.
 func Host() *runtimehost.Client { return pluginHost.host() }
 
 func Serve(cfg ServeConfig) {

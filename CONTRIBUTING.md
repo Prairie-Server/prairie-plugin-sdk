@@ -35,7 +35,15 @@ go build ./examples/hello-scheduled-task
 go build ./examples/hello-runtime-host
 go build ./examples/hello-network-access
 gofmt -l .
+golangci-lint run ./...
+go test $(go list ./pkg/pluginsdk/... | grep -vE '/(runtimedefault|runtime)$') -count=1 -covermode=atomic -coverprofile=coverage.out
+./scripts/check-coverage.sh coverage.out
 ```
+
+CI runs golangci-lint v2.14.0 and enforces a 95% statement coverage floor
+(`scripts/check-coverage.sh`) over `pkg/pluginsdk/...`, excluding the
+`runtime` and `runtimedefault` wiring packages; the last three commands
+reproduce those checks.
 
 For protobuf or generated-code changes, also run:
 
