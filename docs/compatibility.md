@@ -59,6 +59,44 @@ it. The current values are `queued`, `downloading`, `paused`, `stalled`,
 rather than an error. An empty `phase` is not a new value: plugins must always
 set one, as the `TargetStatus.progress` rules below describe.
 
+`CapabilityDescriptor.auth_modes` is open too. The known values are
+`password`, `oauth2` and, since v0.23.0, `network`. Hosts ignore modes they do
+not recognize, and `manifest.Validate` accepts any non-empty, non-duplicate
+mode that is not a case variant of a known one, so a plugin built against a
+newer SDK still loads on a host that validates with an older one. A plugin that
+lists a newer mode should also list a mode older hosts understand. `network` is
+the exception: `manifest.Validate` refuses it beside `password` or `oauth2`,
+so a host that predates it sees no mode it knows and treats the capability as
+a password provider, and the plugin refuses every password. Validate refuses
+only those two beside `network`, so a mode a later SDK allows with it still
+loads.
+
+`CheckAccountResponse.status` is an enum that plugins send and hosts read.
+Hosts treat `CHECK_ACCOUNT_STATUS_UNSPECIFIED`, a value they do not recognize,
+and a gRPC error other than `Unimplemented` like
+`CHECK_ACCOUNT_STATUS_UNAVAILABLE`: log, keep the account as it is, and retry
+later. None of them counts as `ACTIVE`, so an empty response or a status added
+later never keeps an account alive by accident. An `AuthManagedRole` value the
+host does not recognize leaves the account's role unchanged. A refused refresh
+token (OIDC `invalid_grant`) is `NOT_PERMITTED` only when the token is known to
+be inside its lifetime, because the host revokes every session and deletes the
+account's API keys on `NOT_PERMITTED`. A refused token that may have expired is
+`UNSUPPORTED`.
+
+## Additive Services
+
+Adding an RPC to a released service adds a method to its Go server interface,
+which breaks plugins that implement the interface directly rather than
+embedding the generated `Unimplemented...Server`. New RPCs for a released
+capability therefore go in a separate service, such as
+`WatchSyncDeviceAuthorizationService`, `AuthProviderChecks` or
+`NetworkIdentityAuth`. A plugin that
+does not register the new service answers `Unimplemented`, and hosts treat that
+as "not supported". A network provider cannot fall back that way: without
+`AuthProviderChecks.CheckAccount`, a person removed from the overlay would stay
+signed in until the session's absolute age limit, so `ServeManifestWithOptions`
+refuses to start a plugin that declares the `network` mode without it.
+
 ## Presence-Sensitive Optional Fields
 
 Some contract fields use proto3 `optional` because absence and zero have
@@ -70,10 +108,25 @@ APIs), never infer it from the numeric value. Calling
 `GetSeasonNumber() != 0` silently conflates "no season scope" with "Specials
 (season zero) requested."
 
+`AuthenticateResponse.email_verified` (added in v0.22.0) is `optional bool`:
+unset means the provider did not say, and an explicit `false` means the
+provider reports the address unverified. Check presence before trusting an
+email for account matching.
+
+`AuthenticateResponse.refresh_state` is a message field. Unset keeps the state
+the host stored for the account; an explicitly empty Struct clears it. The
+same rule applies to `CheckAccountResponse.account.refresh_state`.
+
 Watch-sync rating fields (`WatchSyncEvent.rating` and
 `WatchSyncRemoteRatingState.rating`) are deliberately plain `int32`. Valid
 ratings run from 1 to 10, so zero never carries a rating and no presence check
 is needed.
+
+`WatchSyncAuthenticatedContext.connection_settings` (added in v0.24.0) is a
+map, so it has no presence: a host that predates it sends an empty map. A
+plugin must treat a missing key as the setting's default rather than as an
+error. A host skips a declared setting whose type it does not know, including
+one an older SDK decoded as `UNSPECIFIED`, and sends no value for it.
 
 `RequestDescriptor.seasons` is a repeated field, so it has no presence: an
 empty list means the whole series, and season `0` in a non-empty list means
@@ -98,6 +151,14 @@ every minute only when the manifest declares
 `progress` from a plugin that does not declare the flag. The regular reconcile
 pass notices progress first, and a target
 whose `progress` comes back unset returns to that cadence.
+
+`RequestRouterDescriptor.wording` is a message field read from the manifest.
+Hosts built before it existed ignore it: every SDK version drops unknown fields
+when it loads a manifest, and from v0.13.1 also when it decodes stored
+capability metadata, so only a host older than v0.13.1 that reads metadata a
+newer host stored could reject it. An absent wording, or any empty value in it,
+means the host's own neutral words. Plugins can therefore declare wording
+without raising their minimum host version.
 
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate

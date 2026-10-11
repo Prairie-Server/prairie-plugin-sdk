@@ -148,6 +148,11 @@ const (
 	// convergent desired-state operations; see WatchSyncEvent.rating.
 	WatchSyncOperation_WATCH_SYNC_OPERATION_SET_RATING    WatchSyncOperation = 10
 	WatchSyncOperation_WATCH_SYNC_OPERATION_REMOVE_RATING WatchSyncOperation = 11
+	// Dropped-show writes address a SERIES item. Both are convergent
+	// desired-state operations: dropping a series that is already dropped, or
+	// undropping one that is not, must yield APPLIED or NO_CHANGE, never a fault.
+	WatchSyncOperation_WATCH_SYNC_OPERATION_MARK_DROPPED   WatchSyncOperation = 12
+	WatchSyncOperation_WATCH_SYNC_OPERATION_UNMARK_DROPPED WatchSyncOperation = 13
 )
 
 // Enum value maps for WatchSyncOperation.
@@ -165,6 +170,8 @@ var (
 		9:  "WATCH_SYNC_OPERATION_SCROBBLE_STOP",
 		10: "WATCH_SYNC_OPERATION_SET_RATING",
 		11: "WATCH_SYNC_OPERATION_REMOVE_RATING",
+		12: "WATCH_SYNC_OPERATION_MARK_DROPPED",
+		13: "WATCH_SYNC_OPERATION_UNMARK_DROPPED",
 	}
 	WatchSyncOperation_value = map[string]int32{
 		"WATCH_SYNC_OPERATION_UNSPECIFIED":           0,
@@ -179,6 +186,8 @@ var (
 		"WATCH_SYNC_OPERATION_SCROBBLE_STOP":         9,
 		"WATCH_SYNC_OPERATION_SET_RATING":            10,
 		"WATCH_SYNC_OPERATION_REMOVE_RATING":         11,
+		"WATCH_SYNC_OPERATION_MARK_DROPPED":          12,
+		"WATCH_SYNC_OPERATION_UNMARK_DROPPED":        13,
 	}
 )
 
@@ -218,6 +227,7 @@ const (
 	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE    WatchSyncRemoteStateKind = 3
 	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST   WatchSyncRemoteStateKind = 4
 	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_RATING      WatchSyncRemoteStateKind = 5
+	WatchSyncRemoteStateKind_WATCH_SYNC_REMOTE_STATE_KIND_DROPPED     WatchSyncRemoteStateKind = 6
 )
 
 // Enum value maps for WatchSyncRemoteStateKind.
@@ -229,6 +239,7 @@ var (
 		3: "WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE",
 		4: "WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST",
 		5: "WATCH_SYNC_REMOTE_STATE_KIND_RATING",
+		6: "WATCH_SYNC_REMOTE_STATE_KIND_DROPPED",
 	}
 	WatchSyncRemoteStateKind_value = map[string]int32{
 		"WATCH_SYNC_REMOTE_STATE_KIND_UNSPECIFIED": 0,
@@ -237,6 +248,7 @@ var (
 		"WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE":    3,
 		"WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST":   4,
 		"WATCH_SYNC_REMOTE_STATE_KIND_RATING":      5,
+		"WATCH_SYNC_REMOTE_STATE_KIND_DROPPED":     6,
 	}
 )
 
@@ -490,6 +502,55 @@ func (WatchSyncFaultCode) EnumDescriptor() ([]byte, []int) {
 	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{7}
 }
 
+// Hosts skip a setting whose type they do not know, including UNSPECIFIED,
+// which is what an older SDK decodes a newer type name to.
+type WatchSyncConnectionSettingType int32
+
+const (
+	WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED WatchSyncConnectionSettingType = 0
+	// An on/off switch. Values are "true" or "false".
+	WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN WatchSyncConnectionSettingType = 1
+)
+
+// Enum value maps for WatchSyncConnectionSettingType.
+var (
+	WatchSyncConnectionSettingType_name = map[int32]string{
+		0: "WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED",
+		1: "WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN",
+	}
+	WatchSyncConnectionSettingType_value = map[string]int32{
+		"WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED": 0,
+		"WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN":     1,
+	}
+)
+
+func (x WatchSyncConnectionSettingType) Enum() *WatchSyncConnectionSettingType {
+	p := new(WatchSyncConnectionSettingType)
+	*p = x
+	return p
+}
+
+func (x WatchSyncConnectionSettingType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (WatchSyncConnectionSettingType) Descriptor() protoreflect.EnumDescriptor {
+	return file_prairie_plugin_v1_watch_sync_provider_proto_enumTypes[8].Descriptor()
+}
+
+func (WatchSyncConnectionSettingType) Type() protoreflect.EnumType {
+	return &file_prairie_plugin_v1_watch_sync_provider_proto_enumTypes[8]
+}
+
+func (x WatchSyncConnectionSettingType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use WatchSyncConnectionSettingType.Descriptor instead.
+func (WatchSyncConnectionSettingType) EnumDescriptor() ([]byte, []int) {
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{8}
+}
+
 type WatchSyncProviderDescriptor struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	AuthMethods          []WatchSyncAuthMethod  `protobuf:"varint,1,rep,packed,name=auth_methods,json=authMethods,proto3,enum=prairie.plugin.v1.WatchSyncAuthMethod" json:"auth_methods,omitempty"`
@@ -522,8 +583,25 @@ type WatchSyncProviderDescriptor struct {
 	// When export_ratings is set, ApplyEvents handles both SET_RATING and
 	// REMOVE_RATING; there is no separate flag for rating removal.
 	ExportRatings bool `protobuf:"varint,18,opt,name=export_ratings,json=exportRatings,proto3" json:"export_ratings,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// When sync_dropped is set, ListRemoteState returns DROPPED states for
+	// series the account stopped watching, and ApplyEvents handles both
+	// MARK_DROPPED and UNMARK_DROPPED. supported_media_types must include SERIES.
+	SyncDropped bool `protobuf:"varint,19,opt,name=sync_dropped,json=syncDropped,proto3" json:"sync_dropped,omitempty"`
+	// Media types whose SET_RATING also records the title as watched on the
+	// provider. The host sends a new rating for these types only after the
+	// profile has a completed play of the title, so rating an unwatched title in
+	// Prairie does not mark it watched upstream. Each entry must also be listed in
+	// supported_media_types, and export_ratings must be set.
+	RatingExportRequiresWatched []WatchSyncMediaType `protobuf:"varint,20,rep,packed,name=rating_export_requires_watched,json=ratingExportRequiresWatched,proto3,enum=prairie.plugin.v1.WatchSyncMediaType" json:"rating_export_requires_watched,omitempty"`
+	// Settings a profile can change on its connection at any time, such as
+	// whether to log rewatches. The host shows them with the connection's other
+	// sync options, stores a value per connection, and sends the values in
+	// WatchSyncAuthenticatedContext.connection_settings. They differ from the
+	// capability's config_schema, which is collected once when an API-key
+	// connection is made. Keys are unique lowercase slugs.
+	ConnectionSettings []*WatchSyncConnectionSetting `protobuf:"bytes,21,rep,name=connection_settings,json=connectionSettings,proto3" json:"connection_settings,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *WatchSyncProviderDescriptor) Reset() {
@@ -682,6 +760,108 @@ func (x *WatchSyncProviderDescriptor) GetExportRatings() bool {
 	return false
 }
 
+func (x *WatchSyncProviderDescriptor) GetSyncDropped() bool {
+	if x != nil {
+		return x.SyncDropped
+	}
+	return false
+}
+
+func (x *WatchSyncProviderDescriptor) GetRatingExportRequiresWatched() []WatchSyncMediaType {
+	if x != nil {
+		return x.RatingExportRequiresWatched
+	}
+	return nil
+}
+
+func (x *WatchSyncProviderDescriptor) GetConnectionSettings() []*WatchSyncConnectionSetting {
+	if x != nil {
+		return x.ConnectionSettings
+	}
+	return nil
+}
+
+// A per-connection setting a plugin declares in its descriptor.
+type WatchSyncConnectionSetting struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The key of the setting's value in
+	// WatchSyncAuthenticatedContext.connection_settings.
+	Key         string                         `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Label       string                         `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Description string                         `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Type        WatchSyncConnectionSettingType `protobuf:"varint,4,opt,name=type,proto3,enum=prairie.plugin.v1.WatchSyncConnectionSettingType" json:"type,omitempty"`
+	// The value of a connection that has not changed the setting. A BOOLEAN
+	// setting's default must be a bool; when omitted it is false.
+	DefaultValue  *structpb.Value `protobuf:"bytes,5,opt,name=default_value,json=defaultValue,proto3" json:"default_value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WatchSyncConnectionSetting) Reset() {
+	*x = WatchSyncConnectionSetting{}
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WatchSyncConnectionSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WatchSyncConnectionSetting) ProtoMessage() {}
+
+func (x *WatchSyncConnectionSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WatchSyncConnectionSetting.ProtoReflect.Descriptor instead.
+func (*WatchSyncConnectionSetting) Descriptor() ([]byte, []int) {
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *WatchSyncConnectionSetting) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *WatchSyncConnectionSetting) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *WatchSyncConnectionSetting) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *WatchSyncConnectionSetting) GetType() WatchSyncConnectionSettingType {
+	if x != nil {
+		return x.Type
+	}
+	return WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED
+}
+
+func (x *WatchSyncConnectionSetting) GetDefaultValue() *structpb.Value {
+	if x != nil {
+		return x.DefaultValue
+	}
+	return nil
+}
+
 type WatchSyncProviderConfig struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Values map[string]string      `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
@@ -694,7 +874,7 @@ type WatchSyncProviderConfig struct {
 
 func (x *WatchSyncProviderConfig) Reset() {
 	*x = WatchSyncProviderConfig{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[1]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -706,7 +886,7 @@ func (x *WatchSyncProviderConfig) String() string {
 func (*WatchSyncProviderConfig) ProtoMessage() {}
 
 func (x *WatchSyncProviderConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[1]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -719,7 +899,7 @@ func (x *WatchSyncProviderConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncProviderConfig.ProtoReflect.Descriptor instead.
 func (*WatchSyncProviderConfig) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{1}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *WatchSyncProviderConfig) GetValues() map[string]string {
@@ -757,7 +937,7 @@ type WatchSyncCredentials struct {
 
 func (x *WatchSyncCredentials) Reset() {
 	*x = WatchSyncCredentials{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[2]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -769,7 +949,7 @@ func (x *WatchSyncCredentials) String() string {
 func (*WatchSyncCredentials) ProtoMessage() {}
 
 func (x *WatchSyncCredentials) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[2]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -782,7 +962,7 @@ func (x *WatchSyncCredentials) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncCredentials.ProtoReflect.Descriptor instead.
 func (*WatchSyncCredentials) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{2}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *WatchSyncCredentials) GetAccessToken() string {
@@ -834,13 +1014,19 @@ type WatchSyncAuthenticatedContext struct {
 	CapabilityId   string                   `protobuf:"bytes,1,opt,name=capability_id,json=capabilityId,proto3" json:"capability_id,omitempty"`
 	ProviderConfig *WatchSyncProviderConfig `protobuf:"bytes,2,opt,name=provider_config,json=providerConfig,proto3" json:"provider_config,omitempty"`
 	Credentials    *WatchSyncCredentials    `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// The connection's value for every setting in the descriptor's
+	// connection_settings, keyed by setting key, with defaults applied for
+	// settings the profile has not changed. A BOOLEAN value is "true" or
+	// "false". Hosts that predate connection_settings send an empty map, so a
+	// plugin uses the setting's default when its key is absent.
+	ConnectionSettings map[string]string `protobuf:"bytes,4,rep,name=connection_settings,json=connectionSettings,proto3" json:"connection_settings,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *WatchSyncAuthenticatedContext) Reset() {
 	*x = WatchSyncAuthenticatedContext{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[3]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -852,7 +1038,7 @@ func (x *WatchSyncAuthenticatedContext) String() string {
 func (*WatchSyncAuthenticatedContext) ProtoMessage() {}
 
 func (x *WatchSyncAuthenticatedContext) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[3]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -865,7 +1051,7 @@ func (x *WatchSyncAuthenticatedContext) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncAuthenticatedContext.ProtoReflect.Descriptor instead.
 func (*WatchSyncAuthenticatedContext) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{3}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *WatchSyncAuthenticatedContext) GetCapabilityId() string {
@@ -889,6 +1075,13 @@ func (x *WatchSyncAuthenticatedContext) GetCredentials() *WatchSyncCredentials {
 	return nil
 }
 
+func (x *WatchSyncAuthenticatedContext) GetConnectionSettings() map[string]string {
+	if x != nil {
+		return x.ConnectionSettings
+	}
+	return nil
+}
+
 type WatchSyncAccount struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ExternalSubject string                 `protobuf:"bytes,1,opt,name=external_subject,json=externalSubject,proto3" json:"external_subject,omitempty"`
@@ -902,7 +1095,7 @@ type WatchSyncAccount struct {
 
 func (x *WatchSyncAccount) Reset() {
 	*x = WatchSyncAccount{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[4]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -914,7 +1107,7 @@ func (x *WatchSyncAccount) String() string {
 func (*WatchSyncAccount) ProtoMessage() {}
 
 func (x *WatchSyncAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[4]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -927,7 +1120,7 @@ func (x *WatchSyncAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncAccount.ProtoReflect.Descriptor instead.
 func (*WatchSyncAccount) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{4}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *WatchSyncAccount) GetExternalSubject() string {
@@ -980,7 +1173,7 @@ type WatchSyncFault struct {
 
 func (x *WatchSyncFault) Reset() {
 	*x = WatchSyncFault{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[5]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -992,7 +1185,7 @@ func (x *WatchSyncFault) String() string {
 func (*WatchSyncFault) ProtoMessage() {}
 
 func (x *WatchSyncFault) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[5]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1005,7 +1198,7 @@ func (x *WatchSyncFault) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncFault.ProtoReflect.Descriptor instead.
 func (*WatchSyncFault) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{5}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *WatchSyncFault) GetCode() WatchSyncFaultCode {
@@ -1042,7 +1235,7 @@ type WatchSyncInitAuthorizeRequest struct {
 
 func (x *WatchSyncInitAuthorizeRequest) Reset() {
 	*x = WatchSyncInitAuthorizeRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[6]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1054,7 +1247,7 @@ func (x *WatchSyncInitAuthorizeRequest) String() string {
 func (*WatchSyncInitAuthorizeRequest) ProtoMessage() {}
 
 func (x *WatchSyncInitAuthorizeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[6]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1067,7 +1260,7 @@ func (x *WatchSyncInitAuthorizeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncInitAuthorizeRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncInitAuthorizeRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{6}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *WatchSyncInitAuthorizeRequest) GetCapabilityId() string {
@@ -1111,7 +1304,7 @@ type WatchSyncInitAuthorizeResponse struct {
 
 func (x *WatchSyncInitAuthorizeResponse) Reset() {
 	*x = WatchSyncInitAuthorizeResponse{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[7]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1123,7 +1316,7 @@ func (x *WatchSyncInitAuthorizeResponse) String() string {
 func (*WatchSyncInitAuthorizeResponse) ProtoMessage() {}
 
 func (x *WatchSyncInitAuthorizeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[7]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1136,7 +1329,7 @@ func (x *WatchSyncInitAuthorizeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncInitAuthorizeResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncInitAuthorizeResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{7}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *WatchSyncInitAuthorizeResponse) GetAuthorizationUrl() string {
@@ -1173,7 +1366,7 @@ type WatchSyncExchangeCodeRequest struct {
 
 func (x *WatchSyncExchangeCodeRequest) Reset() {
 	*x = WatchSyncExchangeCodeRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[8]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1185,7 +1378,7 @@ func (x *WatchSyncExchangeCodeRequest) String() string {
 func (*WatchSyncExchangeCodeRequest) ProtoMessage() {}
 
 func (x *WatchSyncExchangeCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[8]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1198,7 +1391,7 @@ func (x *WatchSyncExchangeCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncExchangeCodeRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncExchangeCodeRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{8}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *WatchSyncExchangeCodeRequest) GetCapabilityId() string {
@@ -1249,7 +1442,7 @@ type WatchSyncExchangeAPIKeyRequest struct {
 
 func (x *WatchSyncExchangeAPIKeyRequest) Reset() {
 	*x = WatchSyncExchangeAPIKeyRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[9]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1261,7 +1454,7 @@ func (x *WatchSyncExchangeAPIKeyRequest) String() string {
 func (*WatchSyncExchangeAPIKeyRequest) ProtoMessage() {}
 
 func (x *WatchSyncExchangeAPIKeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[9]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1274,7 +1467,7 @@ func (x *WatchSyncExchangeAPIKeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncExchangeAPIKeyRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncExchangeAPIKeyRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{9}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *WatchSyncExchangeAPIKeyRequest) GetCapabilityId() string {
@@ -1308,7 +1501,7 @@ type WatchSyncDeviceAuthorizationServiceStartRequest struct {
 
 func (x *WatchSyncDeviceAuthorizationServiceStartRequest) Reset() {
 	*x = WatchSyncDeviceAuthorizationServiceStartRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[10]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1320,7 +1513,7 @@ func (x *WatchSyncDeviceAuthorizationServiceStartRequest) String() string {
 func (*WatchSyncDeviceAuthorizationServiceStartRequest) ProtoMessage() {}
 
 func (x *WatchSyncDeviceAuthorizationServiceStartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[10]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1333,7 +1526,7 @@ func (x *WatchSyncDeviceAuthorizationServiceStartRequest) ProtoReflect() protore
 
 // Deprecated: Use WatchSyncDeviceAuthorizationServiceStartRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncDeviceAuthorizationServiceStartRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{10}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *WatchSyncDeviceAuthorizationServiceStartRequest) GetCapabilityId() string {
@@ -1367,7 +1560,7 @@ type WatchSyncDeviceAuthorizationServiceStartResponse struct {
 
 func (x *WatchSyncDeviceAuthorizationServiceStartResponse) Reset() {
 	*x = WatchSyncDeviceAuthorizationServiceStartResponse{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[11]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1379,7 +1572,7 @@ func (x *WatchSyncDeviceAuthorizationServiceStartResponse) String() string {
 func (*WatchSyncDeviceAuthorizationServiceStartResponse) ProtoMessage() {}
 
 func (x *WatchSyncDeviceAuthorizationServiceStartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[11]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1392,7 +1585,7 @@ func (x *WatchSyncDeviceAuthorizationServiceStartResponse) ProtoReflect() protor
 
 // Deprecated: Use WatchSyncDeviceAuthorizationServiceStartResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncDeviceAuthorizationServiceStartResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{11}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *WatchSyncDeviceAuthorizationServiceStartResponse) GetUserCode() string {
@@ -1455,7 +1648,7 @@ type WatchSyncDeviceAuthorizationServicePollRequest struct {
 
 func (x *WatchSyncDeviceAuthorizationServicePollRequest) Reset() {
 	*x = WatchSyncDeviceAuthorizationServicePollRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[12]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1467,7 +1660,7 @@ func (x *WatchSyncDeviceAuthorizationServicePollRequest) String() string {
 func (*WatchSyncDeviceAuthorizationServicePollRequest) ProtoMessage() {}
 
 func (x *WatchSyncDeviceAuthorizationServicePollRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[12]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1480,7 +1673,7 @@ func (x *WatchSyncDeviceAuthorizationServicePollRequest) ProtoReflect() protoref
 
 // Deprecated: Use WatchSyncDeviceAuthorizationServicePollRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncDeviceAuthorizationServicePollRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{12}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *WatchSyncDeviceAuthorizationServicePollRequest) GetCapabilityId() string {
@@ -1534,7 +1727,7 @@ type WatchSyncDeviceAuthorizationServicePollResponse struct {
 
 func (x *WatchSyncDeviceAuthorizationServicePollResponse) Reset() {
 	*x = WatchSyncDeviceAuthorizationServicePollResponse{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[13]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1546,7 +1739,7 @@ func (x *WatchSyncDeviceAuthorizationServicePollResponse) String() string {
 func (*WatchSyncDeviceAuthorizationServicePollResponse) ProtoMessage() {}
 
 func (x *WatchSyncDeviceAuthorizationServicePollResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[13]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1559,7 +1752,7 @@ func (x *WatchSyncDeviceAuthorizationServicePollResponse) ProtoReflect() protore
 
 // Deprecated: Use WatchSyncDeviceAuthorizationServicePollResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncDeviceAuthorizationServicePollResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{13}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *WatchSyncDeviceAuthorizationServicePollResponse) GetStatus() WatchSyncDeviceAuthorizationStatus {
@@ -1620,7 +1813,7 @@ type WatchSyncRefreshCredentialsRequest struct {
 
 func (x *WatchSyncRefreshCredentialsRequest) Reset() {
 	*x = WatchSyncRefreshCredentialsRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[14]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1632,7 +1825,7 @@ func (x *WatchSyncRefreshCredentialsRequest) String() string {
 func (*WatchSyncRefreshCredentialsRequest) ProtoMessage() {}
 
 func (x *WatchSyncRefreshCredentialsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[14]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1645,7 +1838,7 @@ func (x *WatchSyncRefreshCredentialsRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use WatchSyncRefreshCredentialsRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncRefreshCredentialsRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{14}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *WatchSyncRefreshCredentialsRequest) GetContext() *WatchSyncAuthenticatedContext {
@@ -1670,7 +1863,7 @@ type WatchSyncCredentialResponse struct {
 
 func (x *WatchSyncCredentialResponse) Reset() {
 	*x = WatchSyncCredentialResponse{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[15]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1682,7 +1875,7 @@ func (x *WatchSyncCredentialResponse) String() string {
 func (*WatchSyncCredentialResponse) ProtoMessage() {}
 
 func (x *WatchSyncCredentialResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[15]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1695,7 +1888,7 @@ func (x *WatchSyncCredentialResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncCredentialResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncCredentialResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{15}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *WatchSyncCredentialResponse) GetCredentials() *WatchSyncCredentials {
@@ -1728,7 +1921,7 @@ type WatchSyncGetAccountRequest struct {
 
 func (x *WatchSyncGetAccountRequest) Reset() {
 	*x = WatchSyncGetAccountRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[16]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1740,7 +1933,7 @@ func (x *WatchSyncGetAccountRequest) String() string {
 func (*WatchSyncGetAccountRequest) ProtoMessage() {}
 
 func (x *WatchSyncGetAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[16]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1753,7 +1946,7 @@ func (x *WatchSyncGetAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncGetAccountRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncGetAccountRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{16}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *WatchSyncGetAccountRequest) GetContext() *WatchSyncAuthenticatedContext {
@@ -1773,7 +1966,7 @@ type WatchSyncGetAccountResponse struct {
 
 func (x *WatchSyncGetAccountResponse) Reset() {
 	*x = WatchSyncGetAccountResponse{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[17]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1785,7 +1978,7 @@ func (x *WatchSyncGetAccountResponse) String() string {
 func (*WatchSyncGetAccountResponse) ProtoMessage() {}
 
 func (x *WatchSyncGetAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[17]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1798,7 +1991,7 @@ func (x *WatchSyncGetAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncGetAccountResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncGetAccountResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{17}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *WatchSyncGetAccountResponse) GetAccount() *WatchSyncAccount {
@@ -1838,7 +2031,7 @@ type WatchSyncMedia struct {
 
 func (x *WatchSyncMedia) Reset() {
 	*x = WatchSyncMedia{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[18]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1850,7 +2043,7 @@ func (x *WatchSyncMedia) String() string {
 func (*WatchSyncMedia) ProtoMessage() {}
 
 func (x *WatchSyncMedia) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[18]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1863,7 +2056,7 @@ func (x *WatchSyncMedia) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncMedia.ProtoReflect.Descriptor instead.
 func (*WatchSyncMedia) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{18}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *WatchSyncMedia) GetMediaItemId() string {
@@ -2008,7 +2201,7 @@ type WatchSyncEvent struct {
 
 func (x *WatchSyncEvent) Reset() {
 	*x = WatchSyncEvent{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[19]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2020,7 +2213,7 @@ func (x *WatchSyncEvent) String() string {
 func (*WatchSyncEvent) ProtoMessage() {}
 
 func (x *WatchSyncEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[19]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2033,7 +2226,7 @@ func (x *WatchSyncEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncEvent.ProtoReflect.Descriptor instead.
 func (*WatchSyncEvent) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{19}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *WatchSyncEvent) GetEventId() string {
@@ -2153,7 +2346,7 @@ type WatchSyncApplyEventsRequest struct {
 
 func (x *WatchSyncApplyEventsRequest) Reset() {
 	*x = WatchSyncApplyEventsRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[20]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2165,7 +2358,7 @@ func (x *WatchSyncApplyEventsRequest) String() string {
 func (*WatchSyncApplyEventsRequest) ProtoMessage() {}
 
 func (x *WatchSyncApplyEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[20]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2178,7 +2371,7 @@ func (x *WatchSyncApplyEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncApplyEventsRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncApplyEventsRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{20}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *WatchSyncApplyEventsRequest) GetContext() *WatchSyncAuthenticatedContext {
@@ -2210,7 +2403,7 @@ type WatchSyncApplyResult struct {
 
 func (x *WatchSyncApplyResult) Reset() {
 	*x = WatchSyncApplyResult{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[21]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2222,7 +2415,7 @@ func (x *WatchSyncApplyResult) String() string {
 func (*WatchSyncApplyResult) ProtoMessage() {}
 
 func (x *WatchSyncApplyResult) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[21]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2235,7 +2428,7 @@ func (x *WatchSyncApplyResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncApplyResult.ProtoReflect.Descriptor instead.
 func (*WatchSyncApplyResult) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{21}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *WatchSyncApplyResult) GetEventId() string {
@@ -2274,7 +2467,7 @@ type WatchSyncApplyEventsResponse struct {
 
 func (x *WatchSyncApplyEventsResponse) Reset() {
 	*x = WatchSyncApplyEventsResponse{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[22]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2286,7 +2479,7 @@ func (x *WatchSyncApplyEventsResponse) String() string {
 func (*WatchSyncApplyEventsResponse) ProtoMessage() {}
 
 func (x *WatchSyncApplyEventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[22]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2299,7 +2492,7 @@ func (x *WatchSyncApplyEventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncApplyEventsResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncApplyEventsResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{22}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *WatchSyncApplyEventsResponse) GetResults() []*WatchSyncApplyResult {
@@ -2345,7 +2538,7 @@ type WatchSyncListRemoteStateRequest struct {
 
 func (x *WatchSyncListRemoteStateRequest) Reset() {
 	*x = WatchSyncListRemoteStateRequest{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[23]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2357,7 +2550,7 @@ func (x *WatchSyncListRemoteStateRequest) String() string {
 func (*WatchSyncListRemoteStateRequest) ProtoMessage() {}
 
 func (x *WatchSyncListRemoteStateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[23]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2370,7 +2563,7 @@ func (x *WatchSyncListRemoteStateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncListRemoteStateRequest.ProtoReflect.Descriptor instead.
 func (*WatchSyncListRemoteStateRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{23}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *WatchSyncListRemoteStateRequest) GetContext() *WatchSyncAuthenticatedContext {
@@ -2421,7 +2614,7 @@ type WatchSyncRemoteWatchedState struct {
 
 func (x *WatchSyncRemoteWatchedState) Reset() {
 	*x = WatchSyncRemoteWatchedState{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[24]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2433,7 +2626,7 @@ func (x *WatchSyncRemoteWatchedState) String() string {
 func (*WatchSyncRemoteWatchedState) ProtoMessage() {}
 
 func (x *WatchSyncRemoteWatchedState) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[24]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2446,7 +2639,7 @@ func (x *WatchSyncRemoteWatchedState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncRemoteWatchedState.ProtoReflect.Descriptor instead.
 func (*WatchSyncRemoteWatchedState) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{24}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *WatchSyncRemoteWatchedState) GetPlayCount() int32 {
@@ -2475,7 +2668,7 @@ type WatchSyncRemoteProgressState struct {
 
 func (x *WatchSyncRemoteProgressState) Reset() {
 	*x = WatchSyncRemoteProgressState{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[25]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2487,7 +2680,7 @@ func (x *WatchSyncRemoteProgressState) String() string {
 func (*WatchSyncRemoteProgressState) ProtoMessage() {}
 
 func (x *WatchSyncRemoteProgressState) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[25]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2500,7 +2693,7 @@ func (x *WatchSyncRemoteProgressState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncRemoteProgressState.ProtoReflect.Descriptor instead.
 func (*WatchSyncRemoteProgressState) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{25}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *WatchSyncRemoteProgressState) GetProgressPercent() float64 {
@@ -2530,7 +2723,7 @@ type WatchSyncRemoteListState struct {
 
 func (x *WatchSyncRemoteListState) Reset() {
 	*x = WatchSyncRemoteListState{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[26]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2542,7 +2735,7 @@ func (x *WatchSyncRemoteListState) String() string {
 func (*WatchSyncRemoteListState) ProtoMessage() {}
 
 func (x *WatchSyncRemoteListState) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[26]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2555,7 +2748,7 @@ func (x *WatchSyncRemoteListState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncRemoteListState.ProtoReflect.Descriptor instead.
 func (*WatchSyncRemoteListState) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{26}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *WatchSyncRemoteListState) GetListedAt() *timestamppb.Timestamp {
@@ -2589,7 +2782,7 @@ type WatchSyncRemoteRatingState struct {
 
 func (x *WatchSyncRemoteRatingState) Reset() {
 	*x = WatchSyncRemoteRatingState{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[27]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2601,7 +2794,7 @@ func (x *WatchSyncRemoteRatingState) String() string {
 func (*WatchSyncRemoteRatingState) ProtoMessage() {}
 
 func (x *WatchSyncRemoteRatingState) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[27]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2614,7 +2807,7 @@ func (x *WatchSyncRemoteRatingState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncRemoteRatingState.ProtoReflect.Descriptor instead.
 func (*WatchSyncRemoteRatingState) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{27}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *WatchSyncRemoteRatingState) GetRating() int32 {
@@ -2641,23 +2834,27 @@ func (x *WatchSyncRemoteRatingState) GetRemoved() bool {
 type WatchSyncRemoteState struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ProviderItemKey string                 `protobuf:"bytes,1,opt,name=provider_item_key,json=providerItemKey,proto3" json:"provider_item_key,omitempty"`
-	// Required except on an explicit favorite, watchlist, or rating tombstone
-	// whose provider_item_key identifies a record returned previously.
+	// Required except on an explicit favorite, watchlist, rating, or dropped
+	// tombstone whose provider_item_key identifies a record returned previously.
 	Media *WatchSyncMedia `protobuf:"bytes,2,opt,name=media,proto3" json:"media,omitempty"`
 	// At least one typed state must be present. Both may be present when the
 	// provider reports a completed play and a separate resume point.
-	Watched       *WatchSyncRemoteWatchedState  `protobuf:"bytes,3,opt,name=watched,proto3" json:"watched,omitempty"`
-	Progress      *WatchSyncRemoteProgressState `protobuf:"bytes,4,opt,name=progress,proto3" json:"progress,omitempty"`
-	Favorite      *WatchSyncRemoteListState     `protobuf:"bytes,5,opt,name=favorite,proto3" json:"favorite,omitempty"`
-	Watchlist     *WatchSyncRemoteListState     `protobuf:"bytes,6,opt,name=watchlist,proto3" json:"watchlist,omitempty"`
-	Rating        *WatchSyncRemoteRatingState   `protobuf:"bytes,7,opt,name=rating,proto3" json:"rating,omitempty"`
+	Watched   *WatchSyncRemoteWatchedState  `protobuf:"bytes,3,opt,name=watched,proto3" json:"watched,omitempty"`
+	Progress  *WatchSyncRemoteProgressState `protobuf:"bytes,4,opt,name=progress,proto3" json:"progress,omitempty"`
+	Favorite  *WatchSyncRemoteListState     `protobuf:"bytes,5,opt,name=favorite,proto3" json:"favorite,omitempty"`
+	Watchlist *WatchSyncRemoteListState     `protobuf:"bytes,6,opt,name=watchlist,proto3" json:"watchlist,omitempty"`
+	Rating    *WatchSyncRemoteRatingState   `protobuf:"bytes,7,opt,name=rating,proto3" json:"rating,omitempty"`
+	// Present in DROPPED traversals for a SERIES item. listed_at is when the
+	// series was dropped, when available; removed=true is an explicit undrop
+	// tombstone for incremental traversals.
+	Dropped       *WatchSyncRemoteListState `protobuf:"bytes,8,opt,name=dropped,proto3" json:"dropped,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncRemoteState) Reset() {
 	*x = WatchSyncRemoteState{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[28]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2669,7 +2866,7 @@ func (x *WatchSyncRemoteState) String() string {
 func (*WatchSyncRemoteState) ProtoMessage() {}
 
 func (x *WatchSyncRemoteState) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[28]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2682,7 +2879,7 @@ func (x *WatchSyncRemoteState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncRemoteState.ProtoReflect.Descriptor instead.
 func (*WatchSyncRemoteState) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{28}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *WatchSyncRemoteState) GetProviderItemKey() string {
@@ -2734,6 +2931,13 @@ func (x *WatchSyncRemoteState) GetRating() *WatchSyncRemoteRatingState {
 	return nil
 }
 
+func (x *WatchSyncRemoteState) GetDropped() *WatchSyncRemoteListState {
+	if x != nil {
+		return x.Dropped
+	}
+	return nil
+}
+
 type WatchSyncListRemoteStateResponse struct {
 	state protoimpl.MessageState  `protogen:"open.v1"`
 	Items []*WatchSyncRemoteState `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -2748,7 +2952,8 @@ type WatchSyncListRemoteStateResponse struct {
 	// The value must remain stable across every page in one traversal. A provider
 	// advertising provides_watchlist_order must set this true for WATCHLIST
 	// traversals so the returned order is unambiguous. In a complete RATING
-	// traversal, an item absent from the snapshot is unrated.
+	// traversal, an item absent from the snapshot is unrated; in a complete
+	// DROPPED traversal, a series absent from the snapshot is not dropped.
 	CompleteSnapshot bool `protobuf:"varint,4,opt,name=complete_snapshot,json=completeSnapshot,proto3" json:"complete_snapshot,omitempty"`
 	// Complete authoritative replacement. The host persists it before consuming
 	// this page or fault; a persistence failure discards the page and cursor.
@@ -2756,14 +2961,18 @@ type WatchSyncListRemoteStateResponse struct {
 	// Traversal-level failure. After successfully persisting
 	// updated_credentials, the host discards this page and keeps its previously
 	// committed cursor.
-	Fault         *WatchSyncFault `protobuf:"bytes,6,opt,name=fault,proto3" json:"fault,omitempty"`
+	Fault *WatchSyncFault `protobuf:"bytes,6,opt,name=fault,proto3" json:"fault,omitempty"`
+	// Non-fatal notes about this page, such as items the plugin skipped because
+	// the provider returned them without usable identity. The host shows them
+	// with the sync run. They follow the WatchSyncFault.safe_message rules.
+	Warnings      []string `protobuf:"bytes,7,rep,name=warnings,proto3" json:"warnings,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *WatchSyncListRemoteStateResponse) Reset() {
 	*x = WatchSyncListRemoteStateResponse{}
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[29]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2775,7 +2984,7 @@ func (x *WatchSyncListRemoteStateResponse) String() string {
 func (*WatchSyncListRemoteStateResponse) ProtoMessage() {}
 
 func (x *WatchSyncListRemoteStateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[29]
+	mi := &file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2788,7 +2997,7 @@ func (x *WatchSyncListRemoteStateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchSyncListRemoteStateResponse.ProtoReflect.Descriptor instead.
 func (*WatchSyncListRemoteStateResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{29}
+	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *WatchSyncListRemoteStateResponse) GetItems() []*WatchSyncRemoteState {
@@ -2833,18 +3042,25 @@ func (x *WatchSyncListRemoteStateResponse) GetFault() *WatchSyncFault {
 	return nil
 }
 
+func (x *WatchSyncListRemoteStateResponse) GetWarnings() []string {
+	if x != nil {
+		return x.Warnings
+	}
+	return nil
+}
+
 var File_prairie_plugin_v1_watch_sync_provider_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\n" +
-	"+prairie/plugin/v1/watch_sync_provider.proto\x12\x11prairie.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf8\x06\n" +
-	"\x1bWatchSyncProviderDescriptor\x12I\n" +
-	"\fauth_methods\x18\x01 \x03(\x0e2&.prairie.plugin.v1.WatchSyncAuthMethodR\vauthMethods\x12%\n" +
+	"(prairie/plugin/v1/watch_sync_provider.proto\x12\x0eprairie.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdb\b\n" +
+	"\x1bWatchSyncProviderDescriptor\x12F\n" +
+	"\fauth_methods\x18\x01 \x03(\x0e2#.prairie.plugin.v1.WatchSyncAuthMethodR\vauthMethods\x12%\n" +
 	"\x0eexport_watched\x18\x02 \x01(\bR\rexportWatched\x12)\n" +
 	"\x10export_unwatched\x18\x03 \x01(\bR\x0fexportUnwatched\x12%\n" +
 	"\x0eimport_watched\x18\x04 \x01(\bR\rimportWatched\x12'\n" +
-	"\x0fimport_progress\x18\x05 \x01(\bR\x0eimportProgress\x12Y\n" +
-	"\x15supported_media_types\x18\x06 \x03(\x0e2%.prairie.plugin.v1.WatchSyncMediaTypeR\x13supportedMediaTypes\x124\n" +
+	"\x0fimport_progress\x18\x05 \x01(\bR\x0eimportProgress\x12V\n" +
+	"\x15supported_media_types\x18\x06 \x03(\x0e2\".prairie.plugin.v1.WatchSyncMediaTypeR\x13supportedMediaTypes\x124\n" +
 	"\x16external_id_namespaces\x18\a \x03(\tR\x14externalIdNamespaces\x12$\n" +
 	"\x0emax_batch_size\x18\b \x01(\x05R\fmaxBatchSize\x12)\n" +
 	"\x10import_favorites\x18\t \x01(\bR\x0fimportFavorites\x12)\n" +
@@ -2857,16 +3073,25 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x18provides_watchlist_order\x18\x0f \x01(\bR\x16providesWatchlistOrder\x12+\n" +
 	"\x11scrobble_playback\x18\x10 \x01(\bR\x10scrobblePlayback\x12%\n" +
 	"\x0eimport_ratings\x18\x11 \x01(\bR\rimportRatings\x12%\n" +
-	"\x0eexport_ratings\x18\x12 \x01(\bR\rexportRatings\"\xc8\x02\n" +
-	"\x17WatchSyncProviderConfig\x12N\n" +
-	"\x06values\x18\x01 \x03(\v26.prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntryR\x06values\x12a\n" +
-	"\rsecret_values\x18\x02 \x03(\v2<.prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntryR\fsecretValues\x1a9\n" +
+	"\x0eexport_ratings\x18\x12 \x01(\bR\rexportRatings\x12!\n" +
+	"\fsync_dropped\x18\x13 \x01(\bR\vsyncDropped\x12g\n" +
+	"\x1erating_export_requires_watched\x18\x14 \x03(\x0e2\".prairie.plugin.v1.WatchSyncMediaTypeR\x1bratingExportRequiresWatched\x12[\n" +
+	"\x13connection_settings\x18\x15 \x03(\v2*.prairie.plugin.v1.WatchSyncConnectionSettingR\x12connectionSettings\"\xe7\x01\n" +
+	"\x1aWatchSyncConnectionSetting\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12B\n" +
+	"\x04type\x18\x04 \x01(\x0e2..prairie.plugin.v1.WatchSyncConnectionSettingTypeR\x04type\x12;\n" +
+	"\rdefault_value\x18\x05 \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\"\xc2\x02\n" +
+	"\x17WatchSyncProviderConfig\x12K\n" +
+	"\x06values\x18\x01 \x03(\v23.prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntryR\x06values\x12^\n" +
+	"\rsecret_values\x18\x02 \x03(\v29.prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntryR\fsecretValues\x1a9\n" +
 	"\vValuesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a?\n" +
 	"\x11SecretValuesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x81\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfe\x02\n" +
 	"\x14WatchSyncCredentials\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x129\n" +
@@ -2874,15 +3099,19 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x1d\n" +
 	"\n" +
 	"token_type\x18\x04 \x01(\tR\ttokenType\x12\x16\n" +
-	"\x06scopes\x18\x05 \x03(\tR\x06scopes\x12j\n" +
-	"\x11secret_attributes\x18\x06 \x03(\v2=.prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntryR\x10secretAttributes\x1aC\n" +
+	"\x06scopes\x18\x05 \x03(\tR\x06scopes\x12g\n" +
+	"\x11secret_attributes\x18\x06 \x03(\v2:.prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntryR\x10secretAttributes\x1aC\n" +
 	"\x15SecretAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe4\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9d\x03\n" +
 	"\x1dWatchSyncAuthenticatedContext\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12I\n" +
-	"\vcredentials\x18\x03 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\"\xbc\x01\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12F\n" +
+	"\vcredentials\x18\x03 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12v\n" +
+	"\x13connection_settings\x18\x04 \x03(\v2E.prairie.plugin.v1.WatchSyncAuthenticatedContext.ConnectionSettingsEntryR\x12connectionSettings\x1aE\n" +
+	"\x17ConnectionSettingsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbc\x01\n" +
 	"\x10WatchSyncAccount\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
@@ -2890,34 +3119,34 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\n" +
 	"avatar_url\x18\x04 \x01(\tR\tavatarUrl\x12\x1f\n" +
 	"\vprofile_url\x18\x05 \x01(\tR\n" +
-	"profileUrl\"\xaa\x01\n" +
-	"\x0eWatchSyncFault\x129\n" +
-	"\x04code\x18\x01 \x01(\x0e2%.prairie.plugin.v1.WatchSyncFaultCodeR\x04code\x12!\n" +
+	"profileUrl\"\xa7\x01\n" +
+	"\x0eWatchSyncFault\x126\n" +
+	"\x04code\x18\x01 \x01(\x0e2\".prairie.plugin.v1.WatchSyncFaultCodeR\x04code\x12!\n" +
 	"\fsafe_message\x18\x02 \x01(\tR\vsafeMessage\x12:\n" +
 	"\vretry_after\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\n" +
-	"retryAfter\"\xd2\x01\n" +
+	"retryAfter\"\xcf\x01\n" +
 	"\x1dWatchSyncInitAuthorizeRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
 	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12\x14\n" +
-	"\x05state\x18\x04 \x01(\tR\x05state\"\xad\x01\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\"\xaa\x01\n" +
 	"\x1eWatchSyncInitAuthorizeResponse\x12+\n" +
 	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12%\n" +
-	"\x0eprovider_state\x18\x02 \x01(\fR\rproviderState\x127\n" +
-	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x91\x02\n" +
+	"\x0eprovider_state\x18\x02 \x01(\fR\rproviderState\x124\n" +
+	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x8e\x02\n" +
 	"\x1cWatchSyncExchangeCodeRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
 	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12-\n" +
 	"\x12authorization_code\x18\x04 \x01(\tR\x11authorizationCode\x12%\n" +
-	"\x0eprovider_state\x18\x05 \x01(\fR\rproviderState\"\xb3\x01\n" +
+	"\x0eprovider_state\x18\x05 \x01(\fR\rproviderState\"\xb0\x01\n" +
 	"\x1eWatchSyncExchangeAPIKeyRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12\x17\n" +
-	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\"\xab\x01\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12\x17\n" +
+	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\"\xa8\x01\n" +
 	"/WatchSyncDeviceAuthorizationServiceStartRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\"\x97\x03\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\"\x94\x03\n" +
 	"0WatchSyncDeviceAuthorizationServiceStartResponse\x12\x1b\n" +
 	"\tuser_code\x18\x01 \x01(\tR\buserCode\x12)\n" +
 	"\x10verification_url\x18\x02 \x01(\tR\x0fverificationUrl\x12:\n" +
@@ -2925,47 +3154,47 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x0eprovider_state\x18\x04 \x01(\fR\rproviderState\x12D\n" +
 	"\x10polling_interval\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\x0fpollingInterval\x129\n" +
 	"\n" +
-	"expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x127\n" +
-	"\x05fault\x18\a \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xd1\x01\n" +
+	"expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x124\n" +
+	"\x05fault\x18\a \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xce\x01\n" +
 	".WatchSyncDeviceAuthorizationServicePollRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12%\n" +
-	"\x0eprovider_state\x18\x03 \x01(\fR\rproviderState\"\x83\x04\n" +
-	"/WatchSyncDeviceAuthorizationServicePollResponse\x12M\n" +
-	"\x06status\x18\x01 \x01(\x0e25.prairie.plugin.v1.WatchSyncDeviceAuthorizationStatusR\x06status\x12I\n" +
-	"\vcredentials\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12=\n" +
-	"\aaccount\x18\x03 \x01(\v2#.prairie.plugin.v1.WatchSyncAccountR\aaccount\x127\n" +
-	"\x05fault\x18\x04 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\x12*\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12%\n" +
+	"\x0eprovider_state\x18\x03 \x01(\fR\rproviderState\"\xf7\x03\n" +
+	"/WatchSyncDeviceAuthorizationServicePollResponse\x12J\n" +
+	"\x06status\x18\x01 \x01(\x0e22.prairie.plugin.v1.WatchSyncDeviceAuthorizationStatusR\x06status\x12F\n" +
+	"\vcredentials\x18\x02 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12:\n" +
+	"\aaccount\x18\x03 \x01(\v2 .prairie.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
+	"\x05fault\x18\x04 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\x12*\n" +
 	"\x0eprovider_state\x18\x05 \x01(\fH\x00R\rproviderState\x88\x01\x01\x12D\n" +
 	"\x10polling_interval\x18\x06 \x01(\v2\x19.google.protobuf.DurationR\x0fpollingInterval\x129\n" +
 	"\n" +
 	"expires_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAtB\x11\n" +
-	"\x0f_provider_state\"p\n" +
-	"\"WatchSyncRefreshCredentialsRequest\x12J\n" +
-	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\xe0\x01\n" +
-	"\x1bWatchSyncCredentialResponse\x12I\n" +
-	"\vcredentials\x18\x01 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12=\n" +
-	"\aaccount\x18\x02 \x01(\v2#.prairie.plugin.v1.WatchSyncAccountR\aaccount\x127\n" +
-	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"h\n" +
-	"\x1aWatchSyncGetAccountRequest\x12J\n" +
-	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\x95\x01\n" +
-	"\x1bWatchSyncGetAccountResponse\x12=\n" +
-	"\aaccount\x18\x01 \x01(\v2#.prairie.plugin.v1.WatchSyncAccountR\aaccount\x127\n" +
-	"\x05fault\x18\x02 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xf2\x06\n" +
+	"\x0f_provider_state\"m\n" +
+	"\"WatchSyncRefreshCredentialsRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\xd7\x01\n" +
+	"\x1bWatchSyncCredentialResponse\x12F\n" +
+	"\vcredentials\x18\x01 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12:\n" +
+	"\aaccount\x18\x02 \x01(\v2 .prairie.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
+	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"e\n" +
+	"\x1aWatchSyncGetAccountRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\x8f\x01\n" +
+	"\x1bWatchSyncGetAccountResponse\x12:\n" +
+	"\aaccount\x18\x01 \x01(\v2 .prairie.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
+	"\x05fault\x18\x02 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xe9\x06\n" +
 	"\x0eWatchSyncMedia\x12\"\n" +
-	"\rmedia_item_id\x18\x01 \x01(\tR\vmediaItemId\x12D\n" +
+	"\rmedia_item_id\x18\x01 \x01(\tR\vmediaItemId\x12A\n" +
 	"\n" +
-	"media_type\x18\x02 \x01(\x0e2%.prairie.plugin.v1.WatchSyncMediaTypeR\tmediaType\x12\x14\n" +
+	"media_type\x18\x02 \x01(\x0e2\".prairie.plugin.v1.WatchSyncMediaTypeR\tmediaType\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12%\n" +
 	"\x0eoriginal_title\x18\x04 \x01(\tR\roriginalTitle\x12\x12\n" +
-	"\x04year\x18\x05 \x01(\x05R\x04year\x12U\n" +
-	"\fexternal_ids\x18\x06 \x03(\v22.prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntryR\vexternalIds\x12/\n" +
+	"\x04year\x18\x05 \x01(\x05R\x04year\x12R\n" +
+	"\fexternal_ids\x18\x06 \x03(\v2/.prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntryR\vexternalIds\x12/\n" +
 	"\x14series_media_item_id\x18\a \x01(\tR\x11seriesMediaItemId\x12!\n" +
 	"\fseries_title\x18\b \x01(\tR\vseriesTitle\x12\x1f\n" +
 	"\vseries_year\x18\t \x01(\x05R\n" +
-	"seriesYear\x12h\n" +
+	"seriesYear\x12e\n" +
 	"\x13series_external_ids\x18\n" +
-	" \x03(\v28.prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntryR\x11seriesExternalIds\x12#\n" +
+	" \x03(\v25.prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntryR\x11seriesExternalIds\x12#\n" +
 	"\rseason_number\x18\v \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\f \x01(\x05R\repisodeNumber\x126\n" +
 	"\x17absolute_episode_number\x18\r \x01(\x05R\x15absoluteEpisodeNumber\x120\n" +
@@ -2976,14 +3205,14 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aD\n" +
 	"\x16SeriesExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbe\x05\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb5\x05\n" +
 	"\x0eWatchSyncEvent\x12\x19\n" +
-	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12C\n" +
-	"\toperation\x18\x02 \x01(\x0e2%.prairie.plugin.v1.WatchSyncOperationR\toperation\x12:\n" +
-	"\x06origin\x18\x03 \x01(\x0e2\".prairie.plugin.v1.WatchSyncOriginR\x06origin\x12;\n" +
+	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12@\n" +
+	"\toperation\x18\x02 \x01(\x0e2\".prairie.plugin.v1.WatchSyncOperationR\toperation\x127\n" +
+	"\x06origin\x18\x03 \x01(\x0e2\x1f.prairie.plugin.v1.WatchSyncOriginR\x06origin\x12;\n" +
 	"\voccurred_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"occurredAt\x127\n" +
-	"\x05media\x18\x05 \x01(\v2!.prairie.plugin.v1.WatchSyncMediaR\x05media\x12(\n" +
+	"occurredAt\x124\n" +
+	"\x05media\x18\x05 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncMediaR\x05media\x12(\n" +
 	"\x10watch_history_id\x18\x06 \x01(\tR\x0ewatchHistoryId\x12.\n" +
 	"\x13playback_session_id\x18\a \x01(\tR\x11playbackSessionId\x12)\n" +
 	"\x10position_seconds\x18\b \x01(\x01R\x0fpositionSeconds\x12)\n" +
@@ -2996,25 +3225,25 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x11provider_item_key\x18\r \x01(\tR\x0fproviderItemKey\x12\x1c\n" +
 	"\tcompleted\x18\x0e \x01(\bR\tcompleted\x12\x16\n" +
 	"\x06rating\x18\x0f \x01(\x05R\x06ratingB\x10\n" +
-	"\x0e_list_position\"\xa4\x01\n" +
-	"\x1bWatchSyncApplyEventsRequest\x12J\n" +
-	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x129\n" +
-	"\x06events\x18\x02 \x03(\v2!.prairie.plugin.v1.WatchSyncEventR\x06events\"\xab\x01\n" +
+	"\x0e_list_position\"\x9e\x01\n" +
+	"\x1bWatchSyncApplyEventsRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x126\n" +
+	"\x06events\x18\x02 \x03(\v2\x1e.prairie.plugin.v1.WatchSyncEventR\x06events\"\xa5\x01\n" +
 	"\x14WatchSyncApplyResult\x12\x19\n" +
-	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12?\n" +
-	"\x06status\x18\x02 \x01(\x0e2'.prairie.plugin.v1.WatchSyncApplyStatusR\x06status\x127\n" +
-	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xf4\x01\n" +
-	"\x1cWatchSyncApplyEventsResponse\x12A\n" +
-	"\aresults\x18\x01 \x03(\v2'.prairie.plugin.v1.WatchSyncApplyResultR\aresults\x12X\n" +
-	"\x13updated_credentials\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x127\n" +
-	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x8f\x02\n" +
-	"\x1fWatchSyncListRemoteStateRequest\x12J\n" +
-	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x12\x16\n" +
+	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12<\n" +
+	"\x06status\x18\x02 \x01(\x0e2$.prairie.plugin.v1.WatchSyncApplyStatusR\x06status\x124\n" +
+	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xeb\x01\n" +
+	"\x1cWatchSyncApplyEventsResponse\x12>\n" +
+	"\aresults\x18\x01 \x03(\v2$.prairie.plugin.v1.WatchSyncApplyResultR\aresults\x12U\n" +
+	"\x13updated_credentials\x18\x02 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x124\n" +
+	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x89\x02\n" +
+	"\x1fWatchSyncListRemoteStateRequest\x12G\n" +
+	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x12\x16\n" +
 	"\x06cursor\x18\x02 \x01(\tR\x06cursor\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\x12L\n" +
-	"\vstate_kinds\x18\x05 \x03(\x0e2+.prairie.plugin.v1.WatchSyncRemoteStateKindR\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\x12I\n" +
+	"\vstate_kinds\x18\x05 \x03(\x0e2(.prairie.plugin.v1.WatchSyncRemoteStateKindR\n" +
 	"stateKinds\"\x80\x01\n" +
 	"\x1bWatchSyncRemoteWatchedState\x12\x1d\n" +
 	"\n" +
@@ -3029,23 +3258,25 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x1aWatchSyncRemoteRatingState\x12\x16\n" +
 	"\x06rating\x18\x01 \x01(\x05R\x06rating\x125\n" +
 	"\brated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aratedAt\x12\x18\n" +
-	"\aremoved\x18\x03 \x01(\bR\aremoved\"\xed\x03\n" +
+	"\aremoved\x18\x03 \x01(\bR\aremoved\"\x9f\x04\n" +
 	"\x14WatchSyncRemoteState\x12*\n" +
-	"\x11provider_item_key\x18\x01 \x01(\tR\x0fproviderItemKey\x127\n" +
-	"\x05media\x18\x02 \x01(\v2!.prairie.plugin.v1.WatchSyncMediaR\x05media\x12H\n" +
-	"\awatched\x18\x03 \x01(\v2..prairie.plugin.v1.WatchSyncRemoteWatchedStateR\awatched\x12K\n" +
-	"\bprogress\x18\x04 \x01(\v2/.prairie.plugin.v1.WatchSyncRemoteProgressStateR\bprogress\x12G\n" +
-	"\bfavorite\x18\x05 \x01(\v2+.prairie.plugin.v1.WatchSyncRemoteListStateR\bfavorite\x12I\n" +
-	"\twatchlist\x18\x06 \x01(\v2+.prairie.plugin.v1.WatchSyncRemoteListStateR\twatchlist\x12E\n" +
-	"\x06rating\x18\a \x01(\v2-.prairie.plugin.v1.WatchSyncRemoteRatingStateR\x06rating\"\xea\x02\n" +
-	" WatchSyncListRemoteStateResponse\x12=\n" +
-	"\x05items\x18\x01 \x03(\v2'.prairie.plugin.v1.WatchSyncRemoteStateR\x05items\x12&\n" +
+	"\x11provider_item_key\x18\x01 \x01(\tR\x0fproviderItemKey\x124\n" +
+	"\x05media\x18\x02 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncMediaR\x05media\x12E\n" +
+	"\awatched\x18\x03 \x01(\v2+.prairie.plugin.v1.WatchSyncRemoteWatchedStateR\awatched\x12H\n" +
+	"\bprogress\x18\x04 \x01(\v2,.prairie.plugin.v1.WatchSyncRemoteProgressStateR\bprogress\x12D\n" +
+	"\bfavorite\x18\x05 \x01(\v2(.prairie.plugin.v1.WatchSyncRemoteListStateR\bfavorite\x12F\n" +
+	"\twatchlist\x18\x06 \x01(\v2(.prairie.plugin.v1.WatchSyncRemoteListStateR\twatchlist\x12B\n" +
+	"\x06rating\x18\a \x01(\v2*.prairie.plugin.v1.WatchSyncRemoteRatingStateR\x06rating\x12B\n" +
+	"\adropped\x18\b \x01(\v2(.prairie.plugin.v1.WatchSyncRemoteListStateR\adropped\"\xfd\x02\n" +
+	" WatchSyncListRemoteStateResponse\x12:\n" +
+	"\x05items\x18\x01 \x03(\v2$.prairie.plugin.v1.WatchSyncRemoteStateR\x05items\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x1f\n" +
 	"\vnext_cursor\x18\x03 \x01(\tR\n" +
 	"nextCursor\x12+\n" +
-	"\x11complete_snapshot\x18\x04 \x01(\bR\x10completeSnapshot\x12X\n" +
-	"\x13updated_credentials\x18\x05 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x127\n" +
-	"\x05fault\x18\x06 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault*\xb8\x01\n" +
+	"\x11complete_snapshot\x18\x04 \x01(\bR\x10completeSnapshot\x12U\n" +
+	"\x13updated_credentials\x18\x05 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x124\n" +
+	"\x05fault\x18\x06 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\x12\x1a\n" +
+	"\bwarnings\x18\a \x03(\tR\bwarnings*\xb8\x01\n" +
 	"\x13WatchSyncAuthMethod\x12&\n" +
 	"\"WATCH_SYNC_AUTH_METHOD_UNSPECIFIED\x10\x00\x12-\n" +
 	")WATCH_SYNC_AUTH_METHOD_AUTHORIZATION_CODE\x10\x01\x12\"\n" +
@@ -3055,7 +3286,7 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"!WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bWATCH_SYNC_MEDIA_TYPE_MOVIE\x10\x01\x12!\n" +
 	"\x1dWATCH_SYNC_MEDIA_TYPE_EPISODE\x10\x02\x12 \n" +
-	"\x1cWATCH_SYNC_MEDIA_TYPE_SERIES\x10\x03*\xfd\x03\n" +
+	"\x1cWATCH_SYNC_MEDIA_TYPE_SERIES\x10\x03*\xcd\x04\n" +
 	"\x12WatchSyncOperation\x12$\n" +
 	" WATCH_SYNC_OPERATION_UNSPECIFIED\x10\x00\x12%\n" +
 	"!WATCH_SYNC_OPERATION_MARK_WATCHED\x10\x01\x12'\n" +
@@ -3069,14 +3300,17 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\"WATCH_SYNC_OPERATION_SCROBBLE_STOP\x10\t\x12#\n" +
 	"\x1fWATCH_SYNC_OPERATION_SET_RATING\x10\n" +
 	"\x12&\n" +
-	"\"WATCH_SYNC_OPERATION_REMOVE_RATING\x10\v*\x9d\x02\n" +
+	"\"WATCH_SYNC_OPERATION_REMOVE_RATING\x10\v\x12%\n" +
+	"!WATCH_SYNC_OPERATION_MARK_DROPPED\x10\f\x12'\n" +
+	"#WATCH_SYNC_OPERATION_UNMARK_DROPPED\x10\r*\xc7\x02\n" +
 	"\x18WatchSyncRemoteStateKind\x12,\n" +
 	"(WATCH_SYNC_REMOTE_STATE_KIND_UNSPECIFIED\x10\x00\x12(\n" +
 	"$WATCH_SYNC_REMOTE_STATE_KIND_WATCHED\x10\x01\x12)\n" +
 	"%WATCH_SYNC_REMOTE_STATE_KIND_PROGRESS\x10\x02\x12)\n" +
 	"%WATCH_SYNC_REMOTE_STATE_KIND_FAVORITE\x10\x03\x12*\n" +
 	"&WATCH_SYNC_REMOTE_STATE_KIND_WATCHLIST\x10\x04\x12'\n" +
-	"#WATCH_SYNC_REMOTE_STATE_KIND_RATING\x10\x05*\xae\x02\n" +
+	"#WATCH_SYNC_REMOTE_STATE_KIND_RATING\x10\x05\x12(\n" +
+	"$WATCH_SYNC_REMOTE_STATE_KIND_DROPPED\x10\x06*\xae\x02\n" +
 	"\"WatchSyncDeviceAuthorizationStatus\x126\n" +
 	"2WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_UNSPECIFIED\x10\x00\x122\n" +
 	".WATCH_SYNC_DEVICE_AUTHORIZATION_STATUS_PENDING\x10\x01\x125\n" +
@@ -3101,19 +3335,22 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"(WATCH_SYNC_FAULT_CODE_INVALID_CREDENTIAL\x10\x03\x12+\n" +
 	"'WATCH_SYNC_FAULT_CODE_PERMISSION_DENIED\x10\x04\x12)\n" +
 	"%WATCH_SYNC_FAULT_CODE_INVALID_REQUEST\x10\x05\x12#\n" +
-	"\x1fWATCH_SYNC_FAULT_CODE_PERMANENT\x10\x062\xc5\x06\n" +
-	"\x11WatchSyncProvider\x12t\n" +
-	"\rInitAuthorize\x120.prairie.plugin.v1.WatchSyncInitAuthorizeRequest\x1a1.prairie.plugin.v1.WatchSyncInitAuthorizeResponse\x12o\n" +
-	"\fExchangeCode\x12/.prairie.plugin.v1.WatchSyncExchangeCodeRequest\x1a..prairie.plugin.v1.WatchSyncCredentialResponse\x12s\n" +
-	"\x0eExchangeAPIKey\x121.prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest\x1a..prairie.plugin.v1.WatchSyncCredentialResponse\x12{\n" +
-	"\x12RefreshCredentials\x125.prairie.plugin.v1.WatchSyncRefreshCredentialsRequest\x1a..prairie.plugin.v1.WatchSyncCredentialResponse\x12k\n" +
+	"\x1fWATCH_SYNC_FAULT_CODE_PERMANENT\x10\x06*\x84\x01\n" +
+	"\x1eWatchSyncConnectionSettingType\x122\n" +
+	".WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED\x10\x00\x12.\n" +
+	"*WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN\x10\x012\x9b\x06\n" +
+	"\x11WatchSyncProvider\x12n\n" +
+	"\rInitAuthorize\x12-.prairie.plugin.v1.WatchSyncInitAuthorizeRequest\x1a..prairie.plugin.v1.WatchSyncInitAuthorizeResponse\x12i\n" +
+	"\fExchangeCode\x12,.prairie.plugin.v1.WatchSyncExchangeCodeRequest\x1a+.prairie.plugin.v1.WatchSyncCredentialResponse\x12m\n" +
+	"\x0eExchangeAPIKey\x12..prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest\x1a+.prairie.plugin.v1.WatchSyncCredentialResponse\x12u\n" +
+	"\x12RefreshCredentials\x122.prairie.plugin.v1.WatchSyncRefreshCredentialsRequest\x1a+.prairie.plugin.v1.WatchSyncCredentialResponse\x12e\n" +
 	"\n" +
-	"GetAccount\x12-.prairie.plugin.v1.WatchSyncGetAccountRequest\x1a..prairie.plugin.v1.WatchSyncGetAccountResponse\x12n\n" +
-	"\vApplyEvents\x12..prairie.plugin.v1.WatchSyncApplyEventsRequest\x1a/.prairie.plugin.v1.WatchSyncApplyEventsResponse\x12z\n" +
-	"\x0fListRemoteState\x122.prairie.plugin.v1.WatchSyncListRemoteStateRequest\x1a3.prairie.plugin.v1.WatchSyncListRemoteStateResponse2\xc8\x02\n" +
-	"#WatchSyncDeviceAuthorizationService\x12\x90\x01\n" +
-	"\x05Start\x12B.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest\x1aC.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse\x12\x8d\x01\n" +
-	"\x04Poll\x12A.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest\x1aB.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"GetAccount\x12*.prairie.plugin.v1.WatchSyncGetAccountRequest\x1a+.prairie.plugin.v1.WatchSyncGetAccountResponse\x12h\n" +
+	"\vApplyEvents\x12+.prairie.plugin.v1.WatchSyncApplyEventsRequest\x1a,.prairie.plugin.v1.WatchSyncApplyEventsResponse\x12t\n" +
+	"\x0fListRemoteState\x12/.prairie.plugin.v1.WatchSyncListRemoteStateRequest\x1a0.prairie.plugin.v1.WatchSyncListRemoteStateResponse2\xbc\x02\n" +
+	"#WatchSyncDeviceAuthorizationService\x12\x8a\x01\n" +
+	"\x05Start\x12?.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest\x1a@.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse\x12\x87\x01\n" +
+	"\x04Poll\x12>.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest\x1a?.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponseBPZNgithub.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_watch_sync_provider_proto_rawDescOnce sync.Once
@@ -3127,8 +3364,8 @@ func file_prairie_plugin_v1_watch_sync_provider_proto_rawDescGZIP() []byte {
 	return file_prairie_plugin_v1_watch_sync_provider_proto_rawDescData
 }
 
-var file_prairie_plugin_v1_watch_sync_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
+var file_prairie_plugin_v1_watch_sync_provider_proto_enumTypes = make([]protoimpl.EnumInfo, 9)
+var file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_prairie_plugin_v1_watch_sync_provider_proto_goTypes = []any{
 	(WatchSyncAuthMethod)(0),                                 // 0: prairie.plugin.v1.WatchSyncAuthMethod
 	(WatchSyncMediaType)(0),                                  // 1: prairie.plugin.v1.WatchSyncMediaType
@@ -3138,131 +3375,141 @@ var file_prairie_plugin_v1_watch_sync_provider_proto_goTypes = []any{
 	(WatchSyncOrigin)(0),                                     // 5: prairie.plugin.v1.WatchSyncOrigin
 	(WatchSyncApplyStatus)(0),                                // 6: prairie.plugin.v1.WatchSyncApplyStatus
 	(WatchSyncFaultCode)(0),                                  // 7: prairie.plugin.v1.WatchSyncFaultCode
-	(*WatchSyncProviderDescriptor)(nil),                      // 8: prairie.plugin.v1.WatchSyncProviderDescriptor
-	(*WatchSyncProviderConfig)(nil),                          // 9: prairie.plugin.v1.WatchSyncProviderConfig
-	(*WatchSyncCredentials)(nil),                             // 10: prairie.plugin.v1.WatchSyncCredentials
-	(*WatchSyncAuthenticatedContext)(nil),                    // 11: prairie.plugin.v1.WatchSyncAuthenticatedContext
-	(*WatchSyncAccount)(nil),                                 // 12: prairie.plugin.v1.WatchSyncAccount
-	(*WatchSyncFault)(nil),                                   // 13: prairie.plugin.v1.WatchSyncFault
-	(*WatchSyncInitAuthorizeRequest)(nil),                    // 14: prairie.plugin.v1.WatchSyncInitAuthorizeRequest
-	(*WatchSyncInitAuthorizeResponse)(nil),                   // 15: prairie.plugin.v1.WatchSyncInitAuthorizeResponse
-	(*WatchSyncExchangeCodeRequest)(nil),                     // 16: prairie.plugin.v1.WatchSyncExchangeCodeRequest
-	(*WatchSyncExchangeAPIKeyRequest)(nil),                   // 17: prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest
-	(*WatchSyncDeviceAuthorizationServiceStartRequest)(nil),  // 18: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest
-	(*WatchSyncDeviceAuthorizationServiceStartResponse)(nil), // 19: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse
-	(*WatchSyncDeviceAuthorizationServicePollRequest)(nil),   // 20: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest
-	(*WatchSyncDeviceAuthorizationServicePollResponse)(nil),  // 21: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse
-	(*WatchSyncRefreshCredentialsRequest)(nil),               // 22: prairie.plugin.v1.WatchSyncRefreshCredentialsRequest
-	(*WatchSyncCredentialResponse)(nil),                      // 23: prairie.plugin.v1.WatchSyncCredentialResponse
-	(*WatchSyncGetAccountRequest)(nil),                       // 24: prairie.plugin.v1.WatchSyncGetAccountRequest
-	(*WatchSyncGetAccountResponse)(nil),                      // 25: prairie.plugin.v1.WatchSyncGetAccountResponse
-	(*WatchSyncMedia)(nil),                                   // 26: prairie.plugin.v1.WatchSyncMedia
-	(*WatchSyncEvent)(nil),                                   // 27: prairie.plugin.v1.WatchSyncEvent
-	(*WatchSyncApplyEventsRequest)(nil),                      // 28: prairie.plugin.v1.WatchSyncApplyEventsRequest
-	(*WatchSyncApplyResult)(nil),                             // 29: prairie.plugin.v1.WatchSyncApplyResult
-	(*WatchSyncApplyEventsResponse)(nil),                     // 30: prairie.plugin.v1.WatchSyncApplyEventsResponse
-	(*WatchSyncListRemoteStateRequest)(nil),                  // 31: prairie.plugin.v1.WatchSyncListRemoteStateRequest
-	(*WatchSyncRemoteWatchedState)(nil),                      // 32: prairie.plugin.v1.WatchSyncRemoteWatchedState
-	(*WatchSyncRemoteProgressState)(nil),                     // 33: prairie.plugin.v1.WatchSyncRemoteProgressState
-	(*WatchSyncRemoteListState)(nil),                         // 34: prairie.plugin.v1.WatchSyncRemoteListState
-	(*WatchSyncRemoteRatingState)(nil),                       // 35: prairie.plugin.v1.WatchSyncRemoteRatingState
-	(*WatchSyncRemoteState)(nil),                             // 36: prairie.plugin.v1.WatchSyncRemoteState
-	(*WatchSyncListRemoteStateResponse)(nil),                 // 37: prairie.plugin.v1.WatchSyncListRemoteStateResponse
-	nil,                                                      // 38: prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntry
-	nil,                                                      // 39: prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
-	nil,                                                      // 40: prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
-	nil,                                                      // 41: prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntry
-	nil,                                                      // 42: prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
-	(*timestamppb.Timestamp)(nil),                            // 43: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),                              // 44: google.protobuf.Duration
-	(*structpb.Struct)(nil),                                  // 45: google.protobuf.Struct
+	(WatchSyncConnectionSettingType)(0),                      // 8: prairie.plugin.v1.WatchSyncConnectionSettingType
+	(*WatchSyncProviderDescriptor)(nil),                      // 9: prairie.plugin.v1.WatchSyncProviderDescriptor
+	(*WatchSyncConnectionSetting)(nil),                       // 10: prairie.plugin.v1.WatchSyncConnectionSetting
+	(*WatchSyncProviderConfig)(nil),                          // 11: prairie.plugin.v1.WatchSyncProviderConfig
+	(*WatchSyncCredentials)(nil),                             // 12: prairie.plugin.v1.WatchSyncCredentials
+	(*WatchSyncAuthenticatedContext)(nil),                    // 13: prairie.plugin.v1.WatchSyncAuthenticatedContext
+	(*WatchSyncAccount)(nil),                                 // 14: prairie.plugin.v1.WatchSyncAccount
+	(*WatchSyncFault)(nil),                                   // 15: prairie.plugin.v1.WatchSyncFault
+	(*WatchSyncInitAuthorizeRequest)(nil),                    // 16: prairie.plugin.v1.WatchSyncInitAuthorizeRequest
+	(*WatchSyncInitAuthorizeResponse)(nil),                   // 17: prairie.plugin.v1.WatchSyncInitAuthorizeResponse
+	(*WatchSyncExchangeCodeRequest)(nil),                     // 18: prairie.plugin.v1.WatchSyncExchangeCodeRequest
+	(*WatchSyncExchangeAPIKeyRequest)(nil),                   // 19: prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest
+	(*WatchSyncDeviceAuthorizationServiceStartRequest)(nil),  // 20: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest
+	(*WatchSyncDeviceAuthorizationServiceStartResponse)(nil), // 21: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse
+	(*WatchSyncDeviceAuthorizationServicePollRequest)(nil),   // 22: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest
+	(*WatchSyncDeviceAuthorizationServicePollResponse)(nil),  // 23: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse
+	(*WatchSyncRefreshCredentialsRequest)(nil),               // 24: prairie.plugin.v1.WatchSyncRefreshCredentialsRequest
+	(*WatchSyncCredentialResponse)(nil),                      // 25: prairie.plugin.v1.WatchSyncCredentialResponse
+	(*WatchSyncGetAccountRequest)(nil),                       // 26: prairie.plugin.v1.WatchSyncGetAccountRequest
+	(*WatchSyncGetAccountResponse)(nil),                      // 27: prairie.plugin.v1.WatchSyncGetAccountResponse
+	(*WatchSyncMedia)(nil),                                   // 28: prairie.plugin.v1.WatchSyncMedia
+	(*WatchSyncEvent)(nil),                                   // 29: prairie.plugin.v1.WatchSyncEvent
+	(*WatchSyncApplyEventsRequest)(nil),                      // 30: prairie.plugin.v1.WatchSyncApplyEventsRequest
+	(*WatchSyncApplyResult)(nil),                             // 31: prairie.plugin.v1.WatchSyncApplyResult
+	(*WatchSyncApplyEventsResponse)(nil),                     // 32: prairie.plugin.v1.WatchSyncApplyEventsResponse
+	(*WatchSyncListRemoteStateRequest)(nil),                  // 33: prairie.plugin.v1.WatchSyncListRemoteStateRequest
+	(*WatchSyncRemoteWatchedState)(nil),                      // 34: prairie.plugin.v1.WatchSyncRemoteWatchedState
+	(*WatchSyncRemoteProgressState)(nil),                     // 35: prairie.plugin.v1.WatchSyncRemoteProgressState
+	(*WatchSyncRemoteListState)(nil),                         // 36: prairie.plugin.v1.WatchSyncRemoteListState
+	(*WatchSyncRemoteRatingState)(nil),                       // 37: prairie.plugin.v1.WatchSyncRemoteRatingState
+	(*WatchSyncRemoteState)(nil),                             // 38: prairie.plugin.v1.WatchSyncRemoteState
+	(*WatchSyncListRemoteStateResponse)(nil),                 // 39: prairie.plugin.v1.WatchSyncListRemoteStateResponse
+	nil,                                                      // 40: prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntry
+	nil,                                                      // 41: prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
+	nil,                                                      // 42: prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
+	nil,                                                      // 43: prairie.plugin.v1.WatchSyncAuthenticatedContext.ConnectionSettingsEntry
+	nil,                                                      // 44: prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntry
+	nil,                                                      // 45: prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
+	(*structpb.Value)(nil),                                   // 46: google.protobuf.Value
+	(*timestamppb.Timestamp)(nil),                            // 47: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),                              // 48: google.protobuf.Duration
+	(*structpb.Struct)(nil),                                  // 49: google.protobuf.Struct
 }
 var file_prairie_plugin_v1_watch_sync_provider_proto_depIdxs = []int32{
 	0,  // 0: prairie.plugin.v1.WatchSyncProviderDescriptor.auth_methods:type_name -> prairie.plugin.v1.WatchSyncAuthMethod
 	1,  // 1: prairie.plugin.v1.WatchSyncProviderDescriptor.supported_media_types:type_name -> prairie.plugin.v1.WatchSyncMediaType
-	38, // 2: prairie.plugin.v1.WatchSyncProviderConfig.values:type_name -> prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntry
-	39, // 3: prairie.plugin.v1.WatchSyncProviderConfig.secret_values:type_name -> prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
-	43, // 4: prairie.plugin.v1.WatchSyncCredentials.expires_at:type_name -> google.protobuf.Timestamp
-	40, // 5: prairie.plugin.v1.WatchSyncCredentials.secret_attributes:type_name -> prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
-	9,  // 6: prairie.plugin.v1.WatchSyncAuthenticatedContext.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
-	10, // 7: prairie.plugin.v1.WatchSyncAuthenticatedContext.credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
-	7,  // 8: prairie.plugin.v1.WatchSyncFault.code:type_name -> prairie.plugin.v1.WatchSyncFaultCode
-	44, // 9: prairie.plugin.v1.WatchSyncFault.retry_after:type_name -> google.protobuf.Duration
-	9,  // 10: prairie.plugin.v1.WatchSyncInitAuthorizeRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
-	13, // 11: prairie.plugin.v1.WatchSyncInitAuthorizeResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	9,  // 12: prairie.plugin.v1.WatchSyncExchangeCodeRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
-	9,  // 13: prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
-	9,  // 14: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
-	44, // 15: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.polling_interval:type_name -> google.protobuf.Duration
-	43, // 16: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.expires_at:type_name -> google.protobuf.Timestamp
-	13, // 17: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	9,  // 18: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
-	4,  // 19: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.status:type_name -> prairie.plugin.v1.WatchSyncDeviceAuthorizationStatus
-	10, // 20: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
-	12, // 21: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.account:type_name -> prairie.plugin.v1.WatchSyncAccount
-	13, // 22: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	44, // 23: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.polling_interval:type_name -> google.protobuf.Duration
-	43, // 24: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.expires_at:type_name -> google.protobuf.Timestamp
-	11, // 25: prairie.plugin.v1.WatchSyncRefreshCredentialsRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
-	10, // 26: prairie.plugin.v1.WatchSyncCredentialResponse.credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
-	12, // 27: prairie.plugin.v1.WatchSyncCredentialResponse.account:type_name -> prairie.plugin.v1.WatchSyncAccount
-	13, // 28: prairie.plugin.v1.WatchSyncCredentialResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	11, // 29: prairie.plugin.v1.WatchSyncGetAccountRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
-	12, // 30: prairie.plugin.v1.WatchSyncGetAccountResponse.account:type_name -> prairie.plugin.v1.WatchSyncAccount
-	13, // 31: prairie.plugin.v1.WatchSyncGetAccountResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	1,  // 32: prairie.plugin.v1.WatchSyncMedia.media_type:type_name -> prairie.plugin.v1.WatchSyncMediaType
-	41, // 33: prairie.plugin.v1.WatchSyncMedia.external_ids:type_name -> prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntry
-	42, // 34: prairie.plugin.v1.WatchSyncMedia.series_external_ids:type_name -> prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
-	45, // 35: prairie.plugin.v1.WatchSyncMedia.metadata:type_name -> google.protobuf.Struct
-	2,  // 36: prairie.plugin.v1.WatchSyncEvent.operation:type_name -> prairie.plugin.v1.WatchSyncOperation
-	5,  // 37: prairie.plugin.v1.WatchSyncEvent.origin:type_name -> prairie.plugin.v1.WatchSyncOrigin
-	43, // 38: prairie.plugin.v1.WatchSyncEvent.occurred_at:type_name -> google.protobuf.Timestamp
-	26, // 39: prairie.plugin.v1.WatchSyncEvent.media:type_name -> prairie.plugin.v1.WatchSyncMedia
-	11, // 40: prairie.plugin.v1.WatchSyncApplyEventsRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
-	27, // 41: prairie.plugin.v1.WatchSyncApplyEventsRequest.events:type_name -> prairie.plugin.v1.WatchSyncEvent
-	6,  // 42: prairie.plugin.v1.WatchSyncApplyResult.status:type_name -> prairie.plugin.v1.WatchSyncApplyStatus
-	13, // 43: prairie.plugin.v1.WatchSyncApplyResult.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	29, // 44: prairie.plugin.v1.WatchSyncApplyEventsResponse.results:type_name -> prairie.plugin.v1.WatchSyncApplyResult
-	10, // 45: prairie.plugin.v1.WatchSyncApplyEventsResponse.updated_credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
-	13, // 46: prairie.plugin.v1.WatchSyncApplyEventsResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	11, // 47: prairie.plugin.v1.WatchSyncListRemoteStateRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
-	3,  // 48: prairie.plugin.v1.WatchSyncListRemoteStateRequest.state_kinds:type_name -> prairie.plugin.v1.WatchSyncRemoteStateKind
-	43, // 49: prairie.plugin.v1.WatchSyncRemoteWatchedState.last_watched_at:type_name -> google.protobuf.Timestamp
-	43, // 50: prairie.plugin.v1.WatchSyncRemoteProgressState.paused_at:type_name -> google.protobuf.Timestamp
-	43, // 51: prairie.plugin.v1.WatchSyncRemoteListState.listed_at:type_name -> google.protobuf.Timestamp
-	43, // 52: prairie.plugin.v1.WatchSyncRemoteRatingState.rated_at:type_name -> google.protobuf.Timestamp
-	26, // 53: prairie.plugin.v1.WatchSyncRemoteState.media:type_name -> prairie.plugin.v1.WatchSyncMedia
-	32, // 54: prairie.plugin.v1.WatchSyncRemoteState.watched:type_name -> prairie.plugin.v1.WatchSyncRemoteWatchedState
-	33, // 55: prairie.plugin.v1.WatchSyncRemoteState.progress:type_name -> prairie.plugin.v1.WatchSyncRemoteProgressState
-	34, // 56: prairie.plugin.v1.WatchSyncRemoteState.favorite:type_name -> prairie.plugin.v1.WatchSyncRemoteListState
-	34, // 57: prairie.plugin.v1.WatchSyncRemoteState.watchlist:type_name -> prairie.plugin.v1.WatchSyncRemoteListState
-	35, // 58: prairie.plugin.v1.WatchSyncRemoteState.rating:type_name -> prairie.plugin.v1.WatchSyncRemoteRatingState
-	36, // 59: prairie.plugin.v1.WatchSyncListRemoteStateResponse.items:type_name -> prairie.plugin.v1.WatchSyncRemoteState
-	10, // 60: prairie.plugin.v1.WatchSyncListRemoteStateResponse.updated_credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
-	13, // 61: prairie.plugin.v1.WatchSyncListRemoteStateResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
-	14, // 62: prairie.plugin.v1.WatchSyncProvider.InitAuthorize:input_type -> prairie.plugin.v1.WatchSyncInitAuthorizeRequest
-	16, // 63: prairie.plugin.v1.WatchSyncProvider.ExchangeCode:input_type -> prairie.plugin.v1.WatchSyncExchangeCodeRequest
-	17, // 64: prairie.plugin.v1.WatchSyncProvider.ExchangeAPIKey:input_type -> prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest
-	22, // 65: prairie.plugin.v1.WatchSyncProvider.RefreshCredentials:input_type -> prairie.plugin.v1.WatchSyncRefreshCredentialsRequest
-	24, // 66: prairie.plugin.v1.WatchSyncProvider.GetAccount:input_type -> prairie.plugin.v1.WatchSyncGetAccountRequest
-	28, // 67: prairie.plugin.v1.WatchSyncProvider.ApplyEvents:input_type -> prairie.plugin.v1.WatchSyncApplyEventsRequest
-	31, // 68: prairie.plugin.v1.WatchSyncProvider.ListRemoteState:input_type -> prairie.plugin.v1.WatchSyncListRemoteStateRequest
-	18, // 69: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Start:input_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest
-	20, // 70: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:input_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest
-	15, // 71: prairie.plugin.v1.WatchSyncProvider.InitAuthorize:output_type -> prairie.plugin.v1.WatchSyncInitAuthorizeResponse
-	23, // 72: prairie.plugin.v1.WatchSyncProvider.ExchangeCode:output_type -> prairie.plugin.v1.WatchSyncCredentialResponse
-	23, // 73: prairie.plugin.v1.WatchSyncProvider.ExchangeAPIKey:output_type -> prairie.plugin.v1.WatchSyncCredentialResponse
-	23, // 74: prairie.plugin.v1.WatchSyncProvider.RefreshCredentials:output_type -> prairie.plugin.v1.WatchSyncCredentialResponse
-	25, // 75: prairie.plugin.v1.WatchSyncProvider.GetAccount:output_type -> prairie.plugin.v1.WatchSyncGetAccountResponse
-	30, // 76: prairie.plugin.v1.WatchSyncProvider.ApplyEvents:output_type -> prairie.plugin.v1.WatchSyncApplyEventsResponse
-	37, // 77: prairie.plugin.v1.WatchSyncProvider.ListRemoteState:output_type -> prairie.plugin.v1.WatchSyncListRemoteStateResponse
-	19, // 78: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Start:output_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse
-	21, // 79: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:output_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse
-	71, // [71:80] is the sub-list for method output_type
-	62, // [62:71] is the sub-list for method input_type
-	62, // [62:62] is the sub-list for extension type_name
-	62, // [62:62] is the sub-list for extension extendee
-	0,  // [0:62] is the sub-list for field type_name
+	1,  // 2: prairie.plugin.v1.WatchSyncProviderDescriptor.rating_export_requires_watched:type_name -> prairie.plugin.v1.WatchSyncMediaType
+	10, // 3: prairie.plugin.v1.WatchSyncProviderDescriptor.connection_settings:type_name -> prairie.plugin.v1.WatchSyncConnectionSetting
+	8,  // 4: prairie.plugin.v1.WatchSyncConnectionSetting.type:type_name -> prairie.plugin.v1.WatchSyncConnectionSettingType
+	46, // 5: prairie.plugin.v1.WatchSyncConnectionSetting.default_value:type_name -> google.protobuf.Value
+	40, // 6: prairie.plugin.v1.WatchSyncProviderConfig.values:type_name -> prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntry
+	41, // 7: prairie.plugin.v1.WatchSyncProviderConfig.secret_values:type_name -> prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntry
+	47, // 8: prairie.plugin.v1.WatchSyncCredentials.expires_at:type_name -> google.protobuf.Timestamp
+	42, // 9: prairie.plugin.v1.WatchSyncCredentials.secret_attributes:type_name -> prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntry
+	11, // 10: prairie.plugin.v1.WatchSyncAuthenticatedContext.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
+	12, // 11: prairie.plugin.v1.WatchSyncAuthenticatedContext.credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
+	43, // 12: prairie.plugin.v1.WatchSyncAuthenticatedContext.connection_settings:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext.ConnectionSettingsEntry
+	7,  // 13: prairie.plugin.v1.WatchSyncFault.code:type_name -> prairie.plugin.v1.WatchSyncFaultCode
+	48, // 14: prairie.plugin.v1.WatchSyncFault.retry_after:type_name -> google.protobuf.Duration
+	11, // 15: prairie.plugin.v1.WatchSyncInitAuthorizeRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
+	15, // 16: prairie.plugin.v1.WatchSyncInitAuthorizeResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	11, // 17: prairie.plugin.v1.WatchSyncExchangeCodeRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
+	11, // 18: prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
+	11, // 19: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
+	48, // 20: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.polling_interval:type_name -> google.protobuf.Duration
+	47, // 21: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.expires_at:type_name -> google.protobuf.Timestamp
+	15, // 22: prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	11, // 23: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest.provider_config:type_name -> prairie.plugin.v1.WatchSyncProviderConfig
+	4,  // 24: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.status:type_name -> prairie.plugin.v1.WatchSyncDeviceAuthorizationStatus
+	12, // 25: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
+	14, // 26: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.account:type_name -> prairie.plugin.v1.WatchSyncAccount
+	15, // 27: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	48, // 28: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.polling_interval:type_name -> google.protobuf.Duration
+	47, // 29: prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse.expires_at:type_name -> google.protobuf.Timestamp
+	13, // 30: prairie.plugin.v1.WatchSyncRefreshCredentialsRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
+	12, // 31: prairie.plugin.v1.WatchSyncCredentialResponse.credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
+	14, // 32: prairie.plugin.v1.WatchSyncCredentialResponse.account:type_name -> prairie.plugin.v1.WatchSyncAccount
+	15, // 33: prairie.plugin.v1.WatchSyncCredentialResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	13, // 34: prairie.plugin.v1.WatchSyncGetAccountRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
+	14, // 35: prairie.plugin.v1.WatchSyncGetAccountResponse.account:type_name -> prairie.plugin.v1.WatchSyncAccount
+	15, // 36: prairie.plugin.v1.WatchSyncGetAccountResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	1,  // 37: prairie.plugin.v1.WatchSyncMedia.media_type:type_name -> prairie.plugin.v1.WatchSyncMediaType
+	44, // 38: prairie.plugin.v1.WatchSyncMedia.external_ids:type_name -> prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntry
+	45, // 39: prairie.plugin.v1.WatchSyncMedia.series_external_ids:type_name -> prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntry
+	49, // 40: prairie.plugin.v1.WatchSyncMedia.metadata:type_name -> google.protobuf.Struct
+	2,  // 41: prairie.plugin.v1.WatchSyncEvent.operation:type_name -> prairie.plugin.v1.WatchSyncOperation
+	5,  // 42: prairie.plugin.v1.WatchSyncEvent.origin:type_name -> prairie.plugin.v1.WatchSyncOrigin
+	47, // 43: prairie.plugin.v1.WatchSyncEvent.occurred_at:type_name -> google.protobuf.Timestamp
+	28, // 44: prairie.plugin.v1.WatchSyncEvent.media:type_name -> prairie.plugin.v1.WatchSyncMedia
+	13, // 45: prairie.plugin.v1.WatchSyncApplyEventsRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
+	29, // 46: prairie.plugin.v1.WatchSyncApplyEventsRequest.events:type_name -> prairie.plugin.v1.WatchSyncEvent
+	6,  // 47: prairie.plugin.v1.WatchSyncApplyResult.status:type_name -> prairie.plugin.v1.WatchSyncApplyStatus
+	15, // 48: prairie.plugin.v1.WatchSyncApplyResult.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	31, // 49: prairie.plugin.v1.WatchSyncApplyEventsResponse.results:type_name -> prairie.plugin.v1.WatchSyncApplyResult
+	12, // 50: prairie.plugin.v1.WatchSyncApplyEventsResponse.updated_credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
+	15, // 51: prairie.plugin.v1.WatchSyncApplyEventsResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	13, // 52: prairie.plugin.v1.WatchSyncListRemoteStateRequest.context:type_name -> prairie.plugin.v1.WatchSyncAuthenticatedContext
+	3,  // 53: prairie.plugin.v1.WatchSyncListRemoteStateRequest.state_kinds:type_name -> prairie.plugin.v1.WatchSyncRemoteStateKind
+	47, // 54: prairie.plugin.v1.WatchSyncRemoteWatchedState.last_watched_at:type_name -> google.protobuf.Timestamp
+	47, // 55: prairie.plugin.v1.WatchSyncRemoteProgressState.paused_at:type_name -> google.protobuf.Timestamp
+	47, // 56: prairie.plugin.v1.WatchSyncRemoteListState.listed_at:type_name -> google.protobuf.Timestamp
+	47, // 57: prairie.plugin.v1.WatchSyncRemoteRatingState.rated_at:type_name -> google.protobuf.Timestamp
+	28, // 58: prairie.plugin.v1.WatchSyncRemoteState.media:type_name -> prairie.plugin.v1.WatchSyncMedia
+	34, // 59: prairie.plugin.v1.WatchSyncRemoteState.watched:type_name -> prairie.plugin.v1.WatchSyncRemoteWatchedState
+	35, // 60: prairie.plugin.v1.WatchSyncRemoteState.progress:type_name -> prairie.plugin.v1.WatchSyncRemoteProgressState
+	36, // 61: prairie.plugin.v1.WatchSyncRemoteState.favorite:type_name -> prairie.plugin.v1.WatchSyncRemoteListState
+	36, // 62: prairie.plugin.v1.WatchSyncRemoteState.watchlist:type_name -> prairie.plugin.v1.WatchSyncRemoteListState
+	37, // 63: prairie.plugin.v1.WatchSyncRemoteState.rating:type_name -> prairie.plugin.v1.WatchSyncRemoteRatingState
+	36, // 64: prairie.plugin.v1.WatchSyncRemoteState.dropped:type_name -> prairie.plugin.v1.WatchSyncRemoteListState
+	38, // 65: prairie.plugin.v1.WatchSyncListRemoteStateResponse.items:type_name -> prairie.plugin.v1.WatchSyncRemoteState
+	12, // 66: prairie.plugin.v1.WatchSyncListRemoteStateResponse.updated_credentials:type_name -> prairie.plugin.v1.WatchSyncCredentials
+	15, // 67: prairie.plugin.v1.WatchSyncListRemoteStateResponse.fault:type_name -> prairie.plugin.v1.WatchSyncFault
+	16, // 68: prairie.plugin.v1.WatchSyncProvider.InitAuthorize:input_type -> prairie.plugin.v1.WatchSyncInitAuthorizeRequest
+	18, // 69: prairie.plugin.v1.WatchSyncProvider.ExchangeCode:input_type -> prairie.plugin.v1.WatchSyncExchangeCodeRequest
+	19, // 70: prairie.plugin.v1.WatchSyncProvider.ExchangeAPIKey:input_type -> prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest
+	24, // 71: prairie.plugin.v1.WatchSyncProvider.RefreshCredentials:input_type -> prairie.plugin.v1.WatchSyncRefreshCredentialsRequest
+	26, // 72: prairie.plugin.v1.WatchSyncProvider.GetAccount:input_type -> prairie.plugin.v1.WatchSyncGetAccountRequest
+	30, // 73: prairie.plugin.v1.WatchSyncProvider.ApplyEvents:input_type -> prairie.plugin.v1.WatchSyncApplyEventsRequest
+	33, // 74: prairie.plugin.v1.WatchSyncProvider.ListRemoteState:input_type -> prairie.plugin.v1.WatchSyncListRemoteStateRequest
+	20, // 75: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Start:input_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest
+	22, // 76: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:input_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest
+	17, // 77: prairie.plugin.v1.WatchSyncProvider.InitAuthorize:output_type -> prairie.plugin.v1.WatchSyncInitAuthorizeResponse
+	25, // 78: prairie.plugin.v1.WatchSyncProvider.ExchangeCode:output_type -> prairie.plugin.v1.WatchSyncCredentialResponse
+	25, // 79: prairie.plugin.v1.WatchSyncProvider.ExchangeAPIKey:output_type -> prairie.plugin.v1.WatchSyncCredentialResponse
+	25, // 80: prairie.plugin.v1.WatchSyncProvider.RefreshCredentials:output_type -> prairie.plugin.v1.WatchSyncCredentialResponse
+	27, // 81: prairie.plugin.v1.WatchSyncProvider.GetAccount:output_type -> prairie.plugin.v1.WatchSyncGetAccountResponse
+	32, // 82: prairie.plugin.v1.WatchSyncProvider.ApplyEvents:output_type -> prairie.plugin.v1.WatchSyncApplyEventsResponse
+	39, // 83: prairie.plugin.v1.WatchSyncProvider.ListRemoteState:output_type -> prairie.plugin.v1.WatchSyncListRemoteStateResponse
+	21, // 84: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Start:output_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse
+	23, // 85: prairie.plugin.v1.WatchSyncDeviceAuthorizationService.Poll:output_type -> prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponse
+	77, // [77:86] is the sub-list for method output_type
+	68, // [68:77] is the sub-list for method input_type
+	68, // [68:68] is the sub-list for extension type_name
+	68, // [68:68] is the sub-list for extension extendee
+	0,  // [0:68] is the sub-list for field type_name
 }
 
 func init() { file_prairie_plugin_v1_watch_sync_provider_proto_init() }
@@ -3270,15 +3517,15 @@ func file_prairie_plugin_v1_watch_sync_provider_proto_init() {
 	if File_prairie_plugin_v1_watch_sync_provider_proto != nil {
 		return
 	}
-	file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[13].OneofWrappers = []any{}
-	file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[19].OneofWrappers = []any{}
+	file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[14].OneofWrappers = []any{}
+	file_prairie_plugin_v1_watch_sync_provider_proto_msgTypes[20].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc), len(file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc)),
-			NumEnums:      8,
-			NumMessages:   35,
+			NumEnums:      9,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

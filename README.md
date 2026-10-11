@@ -10,16 +10,16 @@ release builds resolve the SDK from a published module tag.
 
 ## Packages
 
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1` — generated protobuf code.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
-- `github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1` — generated protobuf code.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/capability` — stable capability type constants for manifests and peer discovery.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/config` — config-schema helpers.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/convert` — type conversions.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/httpclient` — credentialed JSON-over-HTTP client with bounded responses and typed status errors.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/imagevariant` — canonical image-size variant strings.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/manifest` — manifest loading/rendering.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/runtime` — `manifest` subcommand + `Runtime` server scaffolding, including `ServeManifestWithOptions` options such as `WithConfigure` and `WithAuthProviderChecks`.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/runtimedefault` — default `Runtime` implementation with `BindHostBroker` already wired; embed it to skip boilerplate.
+- `github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/runtimehost` — typed client for the host's `RuntimeHost` service, including event publishing, host info, catalog browsing, installed-plugin discovery, scoped streams, plugin-to-plugin HTTP calls, and plugin-owned config writes.
 
 ## Capability families
 
@@ -51,7 +51,7 @@ A typical plugin:
 3. Supports the `manifest` subcommand via `pkg/pluginsdk/runtime` so the host can introspect manifests without launching the plugin.
 4. Is installed either from a catalog or by uploading a trusted binary to a Prairie server.
 
-For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host). For a stub overlay-network provider, see [`examples/hello-network-access`](examples/hello-network-access).
+For a minimal self-describing plugin, see [`examples/hello-scheduled-task`](examples/hello-scheduled-task). For a plugin that calls back into the host via `RuntimeHost` (publishing events, listing libraries), see [`examples/hello-runtime-host`](examples/hello-runtime-host). For a stub overlay-network provider, see [`examples/hello-network-access`](examples/hello-network-access). For an Autoscan source that reports changed paths, see [`examples/hello-scan-source`](examples/hello-scan-source).
 
 ## Operator-facing presentation
 
@@ -67,11 +67,11 @@ plugins should provide a complete block:
     "description_markdown": "A longer description of what the plugin does and when to use it.",
     "setup_markdown": "1. Install the plugin.\n2. Add the required connection.\n3. Enable it for the relevant library.",
     "homepage_url": "https://example.com/plugin",
-    "source_url": "https://github.com/prairie-server/example-plugin",
-    "support_url": "https://github.com/prairie-server/example-plugin/issues",
-    "changelog_url": "https://github.com/prairie-server/example-plugin/releases",
+    "source_url": "https://github.com/Prairie-Server/example-plugin",
+    "support_url": "https://github.com/Prairie-Server/example-plugin/issues",
+    "changelog_url": "https://github.com/Prairie-Server/example-plugin/releases",
     "publisher_name": "Prairie",
-    "publisher_url": "https://github.com/prairie-server",
+    "publisher_url": "https://github.com/Prairie-Server",
     "license_spdx": "AGPL-3.0-or-later"
   }
 }
@@ -128,7 +128,27 @@ err = host.CallPluginJSON(ctx, runtimehost.CallPluginJSONRequest{
 })
 ```
 
-The `auth_provider.v1` capability also exposes OAuth-flow RPCs (`InitAuthorize`, `ExchangeCode`, `RefreshSession`) for plugins that wrap external identity providers.
+## Auth providers
+
+`auth_provider.v1` lets people sign in with an account from an external
+identity provider, such as OIDC or LDAP. Password plugins implement
+`Authenticate`; OAuth plugins implement `InitAuthorize` and `ExchangeCode` and
+declare `"auth_modes": ["oauth2"]`. A network access provider can also sign
+people in from its overlay with `"auth_modes": ["network"]` and the separate
+`NetworkIdentityAuth` service (v0.23.0). All return `AuthenticateResponse`, which
+since v0.22.0 also carries typed identity fields (issuer, username,
+`email_verified`, groups, picture, managed role), opaque `refresh_state`, and a
+typed `denial` for refused sign-ins.
+
+The separate `AuthProviderChecks` service adds `TestConnection`, which tests
+staged settings for the admin UI, `CheckAccount`, which re-checks an account
+without the person present, and `EndSessionUrl`, which returns the provider's
+logout URL for web sign-out. Register it with `runtime.WithAuthProviderChecks`.
+Plugins served by `runtime.ServeManifestWithOptions` receive their settings
+through `runtime.WithConfigure`.
+
+See [docs/auth-provider.md](docs/auth-provider.md) for the manifest rules,
+field semantics, denials, and check statuses.
 
 ## Request routers
 
@@ -213,6 +233,63 @@ last stored. One `DownloadProgress` covers all of a target's downloads:
 `downloading`, so a phase added later still shows as a download in progress on
 hosts that predate it.
 
+### Wording
+
+Prairie clients draw a request as four steps: requested, approved, the router's
+step, and in the library. By default they describe the router's step in neutral
+words: the step is "In progress", a queued request reads "Queued", and a
+downloading one reads "In progress". A plugin can name its step and those two
+statuses in words that fit how it works:
+
+```json
+{
+  "type": "request_router.v1",
+  "id": "seerr",
+  "request_router": {
+    "wording": {
+      "step": "Processing",
+      "queued": { "label": "Sent to Seerr", "detail": "Seerr takes it from here." },
+      "downloading": { "label": "Processing", "detail": "Seerr is working on it." }
+    }
+  }
+}
+```
+
+- `step` names the router's step on the track.
+- `queued` describes a request whose live targets are all `queued`;
+  `downloading` describes one with a `downloading` target.
+- `label` is one to three words for cards, list rows and the current step.
+- `detail` is one sentence shown under the current step on the request's page.
+
+Every field is optional, and clients use their own words for any field left
+empty. `step` and `label` are at most 24 characters and `detail` at most 140;
+each is a single line without leading or trailing spaces, and
+`manifest.Validate` rejects a manifest that breaks these limits. Everyone who
+can see a request sees its wording, so write plain English and leave out release
+names, indexers, download clients and paths. The requested, approved and
+in-library steps are the host's, so a plugin cannot rename them.
+
+The manifest's words are the same for every request. When a plugin knows more
+about one request, it reports `wording` on that target from `Fulfill` or
+`CheckStatus`:
+
+```go
+&pluginv1.TargetStatus{
+    Status: "queued",
+    Wording: &pluginv1.RequestStatusWording{
+        Label:  "Not out yet",
+        Detail: "Radarr adds it once it's out, expected December 18, 2026.",
+    },
+}
+```
+
+It replaces the manifest's wording for the target's status: a `label` replaces
+both the label and the detail, and a `detail` alone replaces only the detail.
+Set it only while the target is `queued` or `downloading`. Each answer replaces
+the last, so leave it unset once it no longer applies. The same limits apply,
+and the host drops wording that breaks them. Hosts that predate the field
+ignore it.
+
 ## Watch sync providers
 
 `watch_sync_provider.v1` lets external plugins participate in Prairie's host-owned
@@ -290,22 +367,51 @@ fault. The host sends rating events only for media types listed in
 `supported_media_types`, and manifest validation requires that list to include
 `MOVIE` or `SERIES` when either ratings flag is set.
 
+On some providers, rating a title also marks it watched. A plugin lists those
+media types in `rating_export_requires_watched`, and the host then sends a new
+rating of that type only after the profile has a completed play of the title.
+Each listed type must also be a supported media type, and `export_ratings` must
+be set.
+
+`sync_dropped` covers series the account stopped watching. `ListRemoteState`
+returns `DROPPED` states for them, and `ApplyEvents` handles `MARK_DROPPED` and
+`UNMARK_DROPPED` for `SERIES` items. Both writes are convergent: dropping a
+series that is already dropped, or undropping one that is not, returns
+`APPLIED` or `NO_CHANGE`. Manifest validation requires `SERIES` in
+`supported_media_types` when the flag is set.
+
+`connection_settings` declares preferences a profile can change on its
+connection at any time, such as whether to log rewatches. Each setting has a
+lowercase slug `key`, a `label`, an optional `description`, a `type`, and an
+optional `default_value`. `BOOLEAN` is the only type so far; the host shows it
+as a switch with the connection's other sync options and stores its value per
+connection. Every authenticated RPC carries the values in
+`WatchSyncAuthenticatedContext.connection_settings`, keyed by setting key, as
+`"true"` or `"false"` for a `BOOLEAN`, with defaults applied for settings the
+profile has not changed. A host that predates the field sends an empty map, so
+a plugin uses its default when a key is absent. These settings differ from a
+capability's `config_schema`, which an API-key connection collects once when it
+is made.
+
 `ListRemoteState` returns provider-neutral typed subrecords. `watched` carries a
 play count and last-watched time; `progress` carries a fractional percentage and
 paused time; `favorite` and `watchlist` carry list membership; `rating` carries
-a 1–10 rating and when it was set. An item may contain multiple state families.
-The host requests only the state families a sync phase needs, keeps that phase's
+a 1–10 rating and when it was set; `dropped` carries when a series was dropped.
+An item may contain multiple state families. The host requests only the state families a sync phase needs, keeps that phase's
 `cursor` fixed while following ephemeral page tokens, commits each successful
 page, and only then persists the final `next_cursor`. `complete_snapshot=true`
 means the traversal is authoritative; when false, missing items are not
 deletions. In a complete `RATING` traversal, an item absent from the snapshot is
-unrated. An incremental favorite, watchlist, or rating removal is an item whose
-corresponding state has `removed=true`; it may omit `media` when
+unrated, and in a complete `DROPPED` traversal a series absent from the snapshot
+is not dropped. An incremental favorite, watchlist, rating, or dropped removal is
+an item whose corresponding state has `removed=true`; it may omit `media` when
 `provider_item_key` identifies a record previously returned to the host. When
 `provides_watchlist_order=true`, watchlist traversals must be complete snapshots
 and the order of returned watchlist states is the remote list order. Event
 `list_position` is presence-aware: an explicit zero means the first position,
-while omission means no requested ordering.
+while omission means no requested ordering. A page may carry `warnings`,
+safe notes such as items skipped for missing identity, which the host shows
+with the sync run.
 
 ## Network access providers
 
@@ -328,6 +434,11 @@ source rewrite rules before enqueueing scans.
 The host resolves the configured upstream connection and passes it to
 `PollChanges` for each poll. Plugins should treat request values such as API
 keys as transient secrets and avoid logging them without redaction.
+
+See [docs/scan-source.md](docs/scan-source.md) for the setup descriptor that
+drives the Add-source flow, per-source settings, marker rules, change scopes,
+and installation. [`examples/hello-scan-source`](examples/hello-scan-source)
+is a complete plugin with tests.
 
 ## Self-describing binaries
 

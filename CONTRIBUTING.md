@@ -34,6 +34,7 @@ go vet ./...
 go build ./examples/hello-scheduled-task
 go build ./examples/hello-runtime-host
 go build ./examples/hello-network-access
+go build ./examples/hello-scan-source
 gofmt -l .
 golangci-lint run ./...
 go test $(go list ./pkg/pluginsdk/... | grep -vE '/(runtimedefault|runtime)$') -count=1 -covermode=atomic -coverprofile=coverage.out

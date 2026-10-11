@@ -3,8 +3,10 @@ package convert_test
 import (
 	"testing"
 
-	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
-	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/convert"
+	"google.golang.org/protobuf/types/known/structpb"
+
+	pluginv1 "github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	"github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/convert"
 )
 
 func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
@@ -24,6 +26,12 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 				pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES,
 			},
 			MaxBatchSize: 25,
+			ConnectionSettings: []*pluginv1.WatchSyncConnectionSetting{{
+				Key:          "track_rewatches",
+				Label:        "Log rewatches",
+				Type:         pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN,
+				DefaultValue: structpb.NewBoolValue(true),
+			}},
 		},
 	}}}
 	records, err := convert.CapabilityRecordsFromManifest(manifest)
@@ -42,6 +50,12 @@ func TestWatchSyncProviderDescriptorRoundTrip(t *testing.T) {
 		got.GetSupportedMediaTypes()[1] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_EPISODE ||
 		got.GetSupportedMediaTypes()[2] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES {
 		t.Fatalf("decoded descriptor = %#v", got)
+	}
+	settings := got.GetConnectionSettings()
+	if len(settings) != 1 || settings[0].GetKey() != "track_rewatches" || settings[0].GetLabel() != "Log rewatches" ||
+		settings[0].GetType() != pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN ||
+		!settings[0].GetDefaultValue().GetBoolValue() {
+		t.Fatalf("connection settings = %v", settings)
 	}
 }
 

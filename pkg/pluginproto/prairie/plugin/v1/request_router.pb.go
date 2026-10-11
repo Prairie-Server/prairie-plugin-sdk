@@ -168,8 +168,11 @@ type RequestRouterDescriptor struct {
 	// regular cadence. Hosts ignore progress from plugins that do not declare
 	// this.
 	ReportsDownloadProgress bool `protobuf:"varint,2,opt,name=reports_download_progress,json=reportsDownloadProgress,proto3" json:"reports_download_progress,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// wording is how clients describe a request while this plugin fulfils it.
+	// Unset, or any field left empty, means the host's own neutral words.
+	Wording       *RequestRouterWording `protobuf:"bytes,3,opt,name=wording,proto3" json:"wording,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RequestRouterDescriptor) Reset() {
@@ -216,6 +219,143 @@ func (x *RequestRouterDescriptor) GetReportsDownloadProgress() bool {
 	return false
 }
 
+func (x *RequestRouterDescriptor) GetWording() *RequestRouterWording {
+	if x != nil {
+		return x.Wording
+	}
+	return nil
+}
+
+// RequestRouterWording names the part of a request that a request router
+// handles, in words that fit how the plugin works. Clients draw a request as
+// four steps: requested, approved, the router's step, and in the library. The
+// router names only its own step and the two statuses it reports while the
+// request is on it; the host words the other steps. Clients show these words
+// to everyone who can see the request, so keep them plain English and leave
+// out release names, indexers, download clients and paths. Every value is a
+// single line without leading or trailing spaces.
+type RequestRouterWording struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// step names the router's step on the request's track, e.g. "Processing".
+	// At most 24 characters.
+	Step string `protobuf:"bytes,1,opt,name=step,proto3" json:"step,omitempty"`
+	// queued describes a request whose live targets are all queued: accepted
+	// by the downstream service, with nothing moving yet.
+	Queued *RequestStatusWording `protobuf:"bytes,2,opt,name=queued,proto3" json:"queued,omitempty"`
+	// downloading describes a request with at least one downloading target.
+	Downloading   *RequestStatusWording `protobuf:"bytes,3,opt,name=downloading,proto3" json:"downloading,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestRouterWording) Reset() {
+	*x = RequestRouterWording{}
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestRouterWording) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestRouterWording) ProtoMessage() {}
+
+func (x *RequestRouterWording) ProtoReflect() protoreflect.Message {
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestRouterWording.ProtoReflect.Descriptor instead.
+func (*RequestRouterWording) Descriptor() ([]byte, []int) {
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RequestRouterWording) GetStep() string {
+	if x != nil {
+		return x.Step
+	}
+	return ""
+}
+
+func (x *RequestRouterWording) GetQueued() *RequestStatusWording {
+	if x != nil {
+		return x.Queued
+	}
+	return nil
+}
+
+func (x *RequestRouterWording) GetDownloading() *RequestStatusWording {
+	if x != nil {
+		return x.Downloading
+	}
+	return nil
+}
+
+// RequestStatusWording describes one status of a request on the router's step.
+type RequestStatusWording struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// label is one to three words for cards, list rows and the current step,
+	// e.g. "Searching". At most 24 characters.
+	Label string `protobuf:"bytes,1,opt,name=label,proto3" json:"label,omitempty"`
+	// detail is one sentence shown under the current step on the request's
+	// page, e.g. "Seerr takes it from here." At most 140 characters.
+	Detail        string `protobuf:"bytes,2,opt,name=detail,proto3" json:"detail,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestStatusWording) Reset() {
+	*x = RequestStatusWording{}
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestStatusWording) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestStatusWording) ProtoMessage() {}
+
+func (x *RequestStatusWording) ProtoReflect() protoreflect.Message {
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestStatusWording.ProtoReflect.Descriptor instead.
+func (*RequestStatusWording) Descriptor() ([]byte, []int) {
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *RequestStatusWording) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *RequestStatusWording) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
 type RouterConnection struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -230,7 +370,7 @@ type RouterConnection struct {
 
 func (x *RouterConnection) Reset() {
 	*x = RouterConnection{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[2]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -242,7 +382,7 @@ func (x *RouterConnection) String() string {
 func (*RouterConnection) ProtoMessage() {}
 
 func (x *RouterConnection) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[2]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +395,7 @@ func (x *RouterConnection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RouterConnection.ProtoReflect.Descriptor instead.
 func (*RouterConnection) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{2}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RouterConnection) GetId() string {
@@ -300,7 +440,7 @@ type RequestedQuality struct {
 
 func (x *RequestedQuality) Reset() {
 	*x = RequestedQuality{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[3]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -312,7 +452,7 @@ func (x *RequestedQuality) String() string {
 func (*RequestedQuality) ProtoMessage() {}
 
 func (x *RequestedQuality) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[3]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -325,7 +465,7 @@ func (x *RequestedQuality) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestedQuality.ProtoReflect.Descriptor instead.
 func (*RequestedQuality) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{3}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RequestedQuality) GetId() string {
@@ -354,7 +494,7 @@ type FulfillRequest struct {
 
 func (x *FulfillRequest) Reset() {
 	*x = FulfillRequest{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[4]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -366,7 +506,7 @@ func (x *FulfillRequest) String() string {
 func (*FulfillRequest) ProtoMessage() {}
 
 func (x *FulfillRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[4]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -379,7 +519,7 @@ func (x *FulfillRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FulfillRequest.ProtoReflect.Descriptor instead.
 func (*FulfillRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{4}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FulfillRequest) GetCapabilityId() string {
@@ -419,15 +559,18 @@ type FulfillmentTarget struct {
 	// host-normalized value
 	ExternalStatus string `protobuf:"bytes,4,opt,name=external_status,json=externalStatus,proto3" json:"external_status,omitempty"`
 	// host-normalized: "queued" | "downloading" | "completed" | "failed"
-	Status        string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
-	Message       string `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	Status  string `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	Message string `protobuf:"bytes,6,opt,name=message,proto3" json:"message,omitempty"`
+	// wording describes this target to requesters, in place of the manifest's
+	// wording for its status; see TargetStatus.wording.
+	Wording       *RequestStatusWording `protobuf:"bytes,7,opt,name=wording,proto3" json:"wording,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FulfillmentTarget) Reset() {
 	*x = FulfillmentTarget{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[5]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -439,7 +582,7 @@ func (x *FulfillmentTarget) String() string {
 func (*FulfillmentTarget) ProtoMessage() {}
 
 func (x *FulfillmentTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[5]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -452,7 +595,7 @@ func (x *FulfillmentTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FulfillmentTarget.ProtoReflect.Descriptor instead.
 func (*FulfillmentTarget) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{5}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *FulfillmentTarget) GetQuality() string {
@@ -497,6 +640,13 @@ func (x *FulfillmentTarget) GetMessage() string {
 	return ""
 }
 
+func (x *FulfillmentTarget) GetWording() *RequestStatusWording {
+	if x != nil {
+		return x.Wording
+	}
+	return nil
+}
+
 type FulfillResponse struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	Targets []*FulfillmentTarget   `protobuf:"bytes,1,rep,name=targets,proto3" json:"targets,omitempty"`
@@ -508,7 +658,7 @@ type FulfillResponse struct {
 
 func (x *FulfillResponse) Reset() {
 	*x = FulfillResponse{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[6]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -520,7 +670,7 @@ func (x *FulfillResponse) String() string {
 func (*FulfillResponse) ProtoMessage() {}
 
 func (x *FulfillResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[6]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -533,7 +683,7 @@ func (x *FulfillResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FulfillResponse.ProtoReflect.Descriptor instead.
 func (*FulfillResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{6}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *FulfillResponse) GetTargets() []*FulfillmentTarget {
@@ -561,7 +711,7 @@ type TargetRef struct {
 
 func (x *TargetRef) Reset() {
 	*x = TargetRef{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[7]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -573,7 +723,7 @@ func (x *TargetRef) String() string {
 func (*TargetRef) ProtoMessage() {}
 
 func (x *TargetRef) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[7]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -586,7 +736,7 @@ func (x *TargetRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TargetRef.ProtoReflect.Descriptor instead.
 func (*TargetRef) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{7}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *TargetRef) GetQuality() string {
@@ -622,7 +772,7 @@ type CheckStatusRequest struct {
 
 func (x *CheckStatusRequest) Reset() {
 	*x = CheckStatusRequest{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[8]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +784,7 @@ func (x *CheckStatusRequest) String() string {
 func (*CheckStatusRequest) ProtoMessage() {}
 
 func (x *CheckStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[8]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +797,7 @@ func (x *CheckStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckStatusRequest.ProtoReflect.Descriptor instead.
 func (*CheckStatusRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{8}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CheckStatusRequest) GetCapabilityId() string {
@@ -707,7 +857,7 @@ type DownloadProgress struct {
 
 func (x *DownloadProgress) Reset() {
 	*x = DownloadProgress{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[9]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -719,7 +869,7 @@ func (x *DownloadProgress) String() string {
 func (*DownloadProgress) ProtoMessage() {}
 
 func (x *DownloadProgress) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[9]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -732,7 +882,7 @@ func (x *DownloadProgress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DownloadProgress.ProtoReflect.Descriptor instead.
 func (*DownloadProgress) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{9}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *DownloadProgress) GetPhase() string {
@@ -786,14 +936,26 @@ type TargetStatus struct {
 	// bytes_total of 0, means nothing is in flight: the host clears the progress
 	// it last stored and checks the target on its regular reconcile cadence
 	// again.
-	Progress      *DownloadProgress `protobuf:"bytes,6,opt,name=progress,proto3" json:"progress,omitempty"`
+	Progress *DownloadProgress `protobuf:"bytes,6,opt,name=progress,proto3" json:"progress,omitempty"`
+	// wording describes where this target is, for everyone who can see the
+	// request, when the plugin knows more than its status says: e.g. label
+	// "Not out yet", detail "Radarr adds it once it's out, expected
+	// December 18, 2026." It replaces the manifest's wording for the target's
+	// status (RequestRouterWording.queued or .downloading): a label replaces
+	// both the label and the detail, and a detail alone replaces only the
+	// detail. Set it only while the status is queued or downloading. Each
+	// answer replaces the last, so leave it unset once it no longer applies.
+	// The same limits apply as to the manifest's wording, and hosts drop
+	// wording that breaks them. Never include release names, indexers,
+	// download clients or paths.
+	Wording       *RequestStatusWording `protobuf:"bytes,7,opt,name=wording,proto3" json:"wording,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TargetStatus) Reset() {
 	*x = TargetStatus{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[10]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -805,7 +967,7 @@ func (x *TargetStatus) String() string {
 func (*TargetStatus) ProtoMessage() {}
 
 func (x *TargetStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[10]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -818,7 +980,7 @@ func (x *TargetStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TargetStatus.ProtoReflect.Descriptor instead.
 func (*TargetStatus) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{10}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *TargetStatus) GetQuality() string {
@@ -863,6 +1025,13 @@ func (x *TargetStatus) GetProgress() *DownloadProgress {
 	return nil
 }
 
+func (x *TargetStatus) GetWording() *RequestStatusWording {
+	if x != nil {
+		return x.Wording
+	}
+	return nil
+}
+
 type CheckStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Statuses      []*TargetStatus        `protobuf:"bytes,1,rep,name=statuses,proto3" json:"statuses,omitempty"`
@@ -872,7 +1041,7 @@ type CheckStatusResponse struct {
 
 func (x *CheckStatusResponse) Reset() {
 	*x = CheckStatusResponse{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[11]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -884,7 +1053,7 @@ func (x *CheckStatusResponse) String() string {
 func (*CheckStatusResponse) ProtoMessage() {}
 
 func (x *CheckStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[11]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -897,7 +1066,7 @@ func (x *CheckStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckStatusResponse.ProtoReflect.Descriptor instead.
 func (*CheckStatusResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{11}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CheckStatusResponse) GetStatuses() []*TargetStatus {
@@ -917,7 +1086,7 @@ type ConfigOption struct {
 
 func (x *ConfigOption) Reset() {
 	*x = ConfigOption{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[12]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -929,7 +1098,7 @@ func (x *ConfigOption) String() string {
 func (*ConfigOption) ProtoMessage() {}
 
 func (x *ConfigOption) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[12]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -942,7 +1111,7 @@ func (x *ConfigOption) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigOption.ProtoReflect.Descriptor instead.
 func (*ConfigOption) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{12}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ConfigOption) GetValue() string {
@@ -968,7 +1137,7 @@ type ConfigOptionList struct {
 
 func (x *ConfigOptionList) Reset() {
 	*x = ConfigOptionList{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[13]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -980,7 +1149,7 @@ func (x *ConfigOptionList) String() string {
 func (*ConfigOptionList) ProtoMessage() {}
 
 func (x *ConfigOptionList) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[13]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -993,7 +1162,7 @@ func (x *ConfigOptionList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigOptionList.ProtoReflect.Descriptor instead.
 func (*ConfigOptionList) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{13}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ConfigOptionList) GetOptions() []*ConfigOption {
@@ -1013,7 +1182,7 @@ type ListConfigOptionsRequest struct {
 
 func (x *ListConfigOptionsRequest) Reset() {
 	*x = ListConfigOptionsRequest{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[14]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1025,7 +1194,7 @@ func (x *ListConfigOptionsRequest) String() string {
 func (*ListConfigOptionsRequest) ProtoMessage() {}
 
 func (x *ListConfigOptionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[14]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1038,7 +1207,7 @@ func (x *ListConfigOptionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConfigOptionsRequest.ProtoReflect.Descriptor instead.
 func (*ListConfigOptionsRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{14}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListConfigOptionsRequest) GetCapabilityId() string {
@@ -1065,7 +1234,7 @@ type ListConfigOptionsResponse struct {
 
 func (x *ListConfigOptionsResponse) Reset() {
 	*x = ListConfigOptionsResponse{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[15]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1077,7 +1246,7 @@ func (x *ListConfigOptionsResponse) String() string {
 func (*ListConfigOptionsResponse) ProtoMessage() {}
 
 func (x *ListConfigOptionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[15]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1090,7 +1259,7 @@ func (x *ListConfigOptionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListConfigOptionsResponse.ProtoReflect.Descriptor instead.
 func (*ListConfigOptionsResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{15}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListConfigOptionsResponse) GetOptionsByField() map[string]*ConfigOptionList {
@@ -1110,7 +1279,7 @@ type TestConnectionRequest struct {
 
 func (x *TestConnectionRequest) Reset() {
 	*x = TestConnectionRequest{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[16]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1122,7 +1291,7 @@ func (x *TestConnectionRequest) String() string {
 func (*TestConnectionRequest) ProtoMessage() {}
 
 func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[16]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1135,7 +1304,7 @@ func (x *TestConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionRequest.ProtoReflect.Descriptor instead.
 func (*TestConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{16}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *TestConnectionRequest) GetCapabilityId() string {
@@ -1162,7 +1331,7 @@ type TestConnectionResponse struct {
 
 func (x *TestConnectionResponse) Reset() {
 	*x = TestConnectionResponse{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[17]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1174,7 +1343,7 @@ func (x *TestConnectionResponse) String() string {
 func (*TestConnectionResponse) ProtoMessage() {}
 
 func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[17]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1187,7 +1356,7 @@ func (x *TestConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TestConnectionResponse.ProtoReflect.Descriptor instead.
 func (*TestConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{17}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *TestConnectionResponse) GetOk() bool {
@@ -1219,7 +1388,7 @@ type ValidateRequest struct {
 
 func (x *ValidateRequest) Reset() {
 	*x = ValidateRequest{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[18]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1231,7 +1400,7 @@ func (x *ValidateRequest) String() string {
 func (*ValidateRequest) ProtoMessage() {}
 
 func (x *ValidateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[18]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1244,7 +1413,7 @@ func (x *ValidateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateRequest.ProtoReflect.Descriptor instead.
 func (*ValidateRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{18}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ValidateRequest) GetCapabilityId() string {
@@ -1278,7 +1447,7 @@ type ValidateResponse struct {
 
 func (x *ValidateResponse) Reset() {
 	*x = ValidateResponse{}
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[19]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1290,7 +1459,7 @@ func (x *ValidateResponse) String() string {
 func (*ValidateResponse) ProtoMessage() {}
 
 func (x *ValidateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[19]
+	mi := &file_prairie_plugin_v1_request_router_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1303,7 +1472,7 @@ func (x *ValidateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateResponse.ProtoReflect.Descriptor instead.
 func (*ValidateResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{19}
+	return file_prairie_plugin_v1_request_router_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ValidateResponse) GetFieldErrors() map[string]string {
@@ -1324,13 +1493,13 @@ var File_prairie_plugin_v1_request_router_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"\n" +
-	"&prairie/plugin/v1/request_router.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe1\x03\n" +
+	"#prairie/plugin/v1/request_router.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xde\x03\n" +
 	"\x11RequestDescriptor\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x01 \x01(\tR\tmediaType\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" +
-	"\x04year\x18\x03 \x01(\x05R\x04year\x12X\n" +
-	"\fexternal_ids\x18\x04 \x03(\v25.prairie.plugin.v1.RequestDescriptor.ExternalIdsEntryR\vexternalIds\x12\x19\n" +
+	"\x04year\x18\x03 \x01(\x05R\x04year\x12U\n" +
+	"\fexternal_ids\x18\x04 \x03(\v22.prairie.plugin.v1.RequestDescriptor.ExternalIdsEntryR\vexternalIds\x12\x19\n" +
 	"\bis_anime\x18\x05 \x01(\bR\aisAnime\x12*\n" +
 	"\x11requester_user_id\x18\x06 \x01(\x03R\x0frequesterUserId\x120\n" +
 	"\x14requester_profile_id\x18\a \x01(\tR\x12requesterProfileId\x12'\n" +
@@ -1340,10 +1509,18 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	" \x03(\x05R\aseasons\x1a>\n" +
 	"\x10ExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x80\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc0\x01\n" +
 	"\x17RequestRouterDescriptor\x12)\n" +
 	"\x10supports_seasons\x18\x01 \x01(\bR\x0fsupportsSeasons\x12:\n" +
-	"\x19reports_download_progress\x18\x02 \x01(\bR\x17reportsDownloadProgress\"\x87\x01\n" +
+	"\x19reports_download_progress\x18\x02 \x01(\bR\x17reportsDownloadProgress\x12>\n" +
+	"\awording\x18\x03 \x01(\v2$.prairie.plugin.v1.RequestRouterWordingR\awording\"\xb0\x01\n" +
+	"\x14RequestRouterWording\x12\x12\n" +
+	"\x04step\x18\x01 \x01(\tR\x04step\x12<\n" +
+	"\x06queued\x18\x02 \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\x06queued\x12F\n" +
+	"\vdownloading\x18\x03 \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\vdownloading\"D\n" +
+	"\x14RequestStatusWording\x12\x14\n" +
+	"\x05label\x18\x01 \x01(\tR\x05label\x12\x16\n" +
+	"\x06detail\x18\x02 \x01(\tR\x06detail\"\x87\x01\n" +
 	"\x10RouterConnection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\bbase_url\x18\x02 \x01(\tR\abaseUrl\x12\x17\n" +
@@ -1351,12 +1528,12 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"\x06config\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x06config\"6\n" +
 	"\x10RequestedQuality\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04is4k\x18\x02 \x01(\bR\x04is4k\"\xff\x01\n" +
+	"\x04is4k\x18\x02 \x01(\bR\x04is4k\"\xf6\x01\n" +
 	"\x0eFulfillRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12>\n" +
-	"\arequest\x18\x02 \x01(\v2$.prairie.plugin.v1.RequestDescriptorR\arequest\x12A\n" +
-	"\tqualities\x18\x03 \x03(\v2#.prairie.plugin.v1.RequestedQualityR\tqualities\x12E\n" +
-	"\vconnections\x18\x04 \x03(\v2#.prairie.plugin.v1.RouterConnectionR\vconnections\"\xce\x01\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12;\n" +
+	"\arequest\x18\x02 \x01(\v2!.prairie.plugin.v1.RequestDescriptorR\arequest\x12>\n" +
+	"\tqualities\x18\x03 \x03(\v2 .prairie.plugin.v1.RequestedQualityR\tqualities\x12B\n" +
+	"\vconnections\x18\x04 \x03(\v2 .prairie.plugin.v1.RouterConnectionR\vconnections\"\x8e\x02\n" +
 	"\x11FulfillmentTarget\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x1f\n" +
@@ -1364,20 +1541,21 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"externalId\x12'\n" +
 	"\x0fexternal_status\x18\x04 \x01(\tR\x0eexternalStatus\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12\x18\n" +
-	"\amessage\x18\x06 \x01(\tR\amessage\"k\n" +
-	"\x0fFulfillResponse\x12>\n" +
-	"\atargets\x18\x01 \x03(\v2$.prairie.plugin.v1.FulfillmentTargetR\atargets\x12\x18\n" +
+	"\amessage\x18\x06 \x01(\tR\amessage\x12>\n" +
+	"\awording\x18\a \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\awording\"h\n" +
+	"\x0fFulfillResponse\x12;\n" +
+	"\atargets\x18\x01 \x03(\v2!.prairie.plugin.v1.FulfillmentTargetR\atargets\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"k\n" +
 	"\tTargetRef\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x1f\n" +
 	"\vexternal_id\x18\x03 \x01(\tR\n" +
-	"externalId\"\xf8\x01\n" +
+	"externalId\"\xef\x01\n" +
 	"\x12CheckStatusRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12>\n" +
-	"\arequest\x18\x02 \x01(\v2$.prairie.plugin.v1.RequestDescriptorR\arequest\x126\n" +
-	"\atargets\x18\x03 \x03(\v2\x1c.prairie.plugin.v1.TargetRefR\atargets\x12E\n" +
-	"\vconnections\x18\x04 \x03(\v2#.prairie.plugin.v1.RouterConnectionR\vconnections\"\xd5\x01\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12;\n" +
+	"\arequest\x18\x02 \x01(\v2!.prairie.plugin.v1.RequestDescriptorR\arequest\x123\n" +
+	"\atargets\x18\x03 \x03(\v2\x19.prairie.plugin.v1.TargetRefR\atargets\x12B\n" +
+	"\vconnections\x18\x04 \x03(\v2 .prairie.plugin.v1.RouterConnectionR\vconnections\"\xd5\x01\n" +
 	"\x10DownloadProgress\x12\x14\n" +
 	"\x05phase\x18\x01 \x01(\tR\x05phase\x12\x1f\n" +
 	"\vbytes_total\x18\x02 \x01(\x03R\n" +
@@ -1385,58 +1563,59 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"\n" +
 	"bytes_left\x18\x03 \x01(\x03R\tbytesLeft\x12M\n" +
 	"\x14estimated_completion\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x13estimatedCompletion\x12\x1c\n" +
-	"\tdownloads\x18\x05 \x01(\x05R\tdownloads\"\xe9\x01\n" +
+	"\tdownloads\x18\x05 \x01(\x05R\tdownloads\"\xa6\x02\n" +
 	"\fTargetStatus\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\tR\x06status\x12'\n" +
 	"\x0fexternal_status\x18\x04 \x01(\tR\x0eexternalStatus\x12\x18\n" +
-	"\amessage\x18\x05 \x01(\tR\amessage\x12?\n" +
-	"\bprogress\x18\x06 \x01(\v2#.prairie.plugin.v1.DownloadProgressR\bprogress\"R\n" +
-	"\x13CheckStatusResponse\x12;\n" +
-	"\bstatuses\x18\x01 \x03(\v2\x1f.prairie.plugin.v1.TargetStatusR\bstatuses\":\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\x12<\n" +
+	"\bprogress\x18\x06 \x01(\v2 .prairie.plugin.v1.DownloadProgressR\bprogress\x12>\n" +
+	"\awording\x18\a \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\awording\"O\n" +
+	"\x13CheckStatusResponse\x128\n" +
+	"\bstatuses\x18\x01 \x03(\v2\x1c.prairie.plugin.v1.TargetStatusR\bstatuses\":\n" +
 	"\fConfigOption\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x14\n" +
-	"\x05label\x18\x02 \x01(\tR\x05label\"M\n" +
-	"\x10ConfigOptionList\x129\n" +
-	"\aoptions\x18\x01 \x03(\v2\x1f.prairie.plugin.v1.ConfigOptionR\aoptions\"\x84\x01\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\"J\n" +
+	"\x10ConfigOptionList\x126\n" +
+	"\aoptions\x18\x01 \x03(\v2\x1c.prairie.plugin.v1.ConfigOptionR\aoptions\"\x81\x01\n" +
 	"\x18ListConfigOptionsRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12C\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
 	"\n" +
-	"connection\x18\x02 \x01(\v2#.prairie.plugin.v1.RouterConnectionR\n" +
-	"connection\"\xef\x01\n" +
-	"\x19ListConfigOptionsResponse\x12j\n" +
-	"\x10options_by_field\x18\x01 \x03(\v2@.prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntryR\x0eoptionsByField\x1af\n" +
+	"connection\x18\x02 \x01(\v2 .prairie.plugin.v1.RouterConnectionR\n" +
+	"connection\"\xe9\x01\n" +
+	"\x19ListConfigOptionsResponse\x12g\n" +
+	"\x10options_by_field\x18\x01 \x03(\v2=.prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntryR\x0eoptionsByField\x1ac\n" +
 	"\x13OptionsByFieldEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x129\n" +
-	"\x05value\x18\x02 \x01(\v2#.prairie.plugin.v1.ConfigOptionListR\x05value:\x028\x01\"\x81\x01\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x126\n" +
+	"\x05value\x18\x02 \x01(\v2 .prairie.plugin.v1.ConfigOptionListR\x05value:\x028\x01\"~\n" +
 	"\x15TestConnectionRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12C\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
 	"\n" +
-	"connection\x18\x02 \x01(\v2#.prairie.plugin.v1.RouterConnectionR\n" +
+	"connection\x18\x02 \x01(\v2 .prairie.plugin.v1.RouterConnectionR\n" +
 	"connection\"B\n" +
 	"\x16TestConnectionResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xbc\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xb6\x01\n" +
 	"\x0fValidateRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12C\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
 	"\n" +
-	"connection\x18\x02 \x01(\v2#.prairie.plugin.v1.RouterConnectionR\n" +
-	"connection\x12?\n" +
-	"\bsiblings\x18\x03 \x03(\v2#.prairie.plugin.v1.RouterConnectionR\bsiblings\"\xca\x01\n" +
-	"\x10ValidateResponse\x12W\n" +
-	"\ffield_errors\x18\x01 \x03(\v24.prairie.plugin.v1.ValidateResponse.FieldErrorsEntryR\vfieldErrors\x12\x1d\n" +
+	"connection\x18\x02 \x01(\v2 .prairie.plugin.v1.RouterConnectionR\n" +
+	"connection\x12<\n" +
+	"\bsiblings\x18\x03 \x03(\v2 .prairie.plugin.v1.RouterConnectionR\bsiblings\"\xc7\x01\n" +
+	"\x10ValidateResponse\x12T\n" +
+	"\ffield_errors\x18\x01 \x03(\v21.prairie.plugin.v1.ValidateResponse.FieldErrorsEntryR\vfieldErrors\x12\x1d\n" +
 	"\n" +
 	"form_error\x18\x02 \x01(\tR\tformError\x1a>\n" +
 	"\x10FieldErrorsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xeb\x03\n" +
-	"\rRequestRouter\x12P\n" +
-	"\aFulfill\x12!.prairie.plugin.v1.FulfillRequest\x1a\".prairie.plugin.v1.FulfillResponse\x12\\\n" +
-	"\vCheckStatus\x12%.prairie.plugin.v1.CheckStatusRequest\x1a&.prairie.plugin.v1.CheckStatusResponse\x12n\n" +
-	"\x11ListConfigOptions\x12+.prairie.plugin.v1.ListConfigOptionsRequest\x1a,.prairie.plugin.v1.ListConfigOptionsResponse\x12e\n" +
-	"\x0eTestConnection\x12(.prairie.plugin.v1.TestConnectionRequest\x1a).prairie.plugin.v1.TestConnectionResponse\x12S\n" +
-	"\bValidate\x12\".prairie.plugin.v1.ValidateRequest\x1a#.prairie.plugin.v1.ValidateResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xcd\x03\n" +
+	"\rRequestRouter\x12J\n" +
+	"\aFulfill\x12\x1e.prairie.plugin.v1.FulfillRequest\x1a\x1f.prairie.plugin.v1.FulfillResponse\x12V\n" +
+	"\vCheckStatus\x12\".prairie.plugin.v1.CheckStatusRequest\x1a#.prairie.plugin.v1.CheckStatusResponse\x12h\n" +
+	"\x11ListConfigOptions\x12(.prairie.plugin.v1.ListConfigOptionsRequest\x1a).prairie.plugin.v1.ListConfigOptionsResponse\x12_\n" +
+	"\x0eTestConnection\x12%.prairie.plugin.v1.TestConnectionRequest\x1a&.prairie.plugin.v1.TestConnectionResponse\x12M\n" +
+	"\bValidate\x12\x1f.prairie.plugin.v1.ValidateRequest\x1a .prairie.plugin.v1.ValidateResponseBPZNgithub.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_request_router_proto_rawDescOnce sync.Once
@@ -1450,70 +1629,77 @@ func file_prairie_plugin_v1_request_router_proto_rawDescGZIP() []byte {
 	return file_prairie_plugin_v1_request_router_proto_rawDescData
 }
 
-var file_prairie_plugin_v1_request_router_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_prairie_plugin_v1_request_router_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_prairie_plugin_v1_request_router_proto_goTypes = []any{
 	(*RequestDescriptor)(nil),         // 0: prairie.plugin.v1.RequestDescriptor
 	(*RequestRouterDescriptor)(nil),   // 1: prairie.plugin.v1.RequestRouterDescriptor
-	(*RouterConnection)(nil),          // 2: prairie.plugin.v1.RouterConnection
-	(*RequestedQuality)(nil),          // 3: prairie.plugin.v1.RequestedQuality
-	(*FulfillRequest)(nil),            // 4: prairie.plugin.v1.FulfillRequest
-	(*FulfillmentTarget)(nil),         // 5: prairie.plugin.v1.FulfillmentTarget
-	(*FulfillResponse)(nil),           // 6: prairie.plugin.v1.FulfillResponse
-	(*TargetRef)(nil),                 // 7: prairie.plugin.v1.TargetRef
-	(*CheckStatusRequest)(nil),        // 8: prairie.plugin.v1.CheckStatusRequest
-	(*DownloadProgress)(nil),          // 9: prairie.plugin.v1.DownloadProgress
-	(*TargetStatus)(nil),              // 10: prairie.plugin.v1.TargetStatus
-	(*CheckStatusResponse)(nil),       // 11: prairie.plugin.v1.CheckStatusResponse
-	(*ConfigOption)(nil),              // 12: prairie.plugin.v1.ConfigOption
-	(*ConfigOptionList)(nil),          // 13: prairie.plugin.v1.ConfigOptionList
-	(*ListConfigOptionsRequest)(nil),  // 14: prairie.plugin.v1.ListConfigOptionsRequest
-	(*ListConfigOptionsResponse)(nil), // 15: prairie.plugin.v1.ListConfigOptionsResponse
-	(*TestConnectionRequest)(nil),     // 16: prairie.plugin.v1.TestConnectionRequest
-	(*TestConnectionResponse)(nil),    // 17: prairie.plugin.v1.TestConnectionResponse
-	(*ValidateRequest)(nil),           // 18: prairie.plugin.v1.ValidateRequest
-	(*ValidateResponse)(nil),          // 19: prairie.plugin.v1.ValidateResponse
-	nil,                               // 20: prairie.plugin.v1.RequestDescriptor.ExternalIdsEntry
-	nil,                               // 21: prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
-	nil,                               // 22: prairie.plugin.v1.ValidateResponse.FieldErrorsEntry
-	(*structpb.Struct)(nil),           // 23: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),     // 24: google.protobuf.Timestamp
+	(*RequestRouterWording)(nil),      // 2: prairie.plugin.v1.RequestRouterWording
+	(*RequestStatusWording)(nil),      // 3: prairie.plugin.v1.RequestStatusWording
+	(*RouterConnection)(nil),          // 4: prairie.plugin.v1.RouterConnection
+	(*RequestedQuality)(nil),          // 5: prairie.plugin.v1.RequestedQuality
+	(*FulfillRequest)(nil),            // 6: prairie.plugin.v1.FulfillRequest
+	(*FulfillmentTarget)(nil),         // 7: prairie.plugin.v1.FulfillmentTarget
+	(*FulfillResponse)(nil),           // 8: prairie.plugin.v1.FulfillResponse
+	(*TargetRef)(nil),                 // 9: prairie.plugin.v1.TargetRef
+	(*CheckStatusRequest)(nil),        // 10: prairie.plugin.v1.CheckStatusRequest
+	(*DownloadProgress)(nil),          // 11: prairie.plugin.v1.DownloadProgress
+	(*TargetStatus)(nil),              // 12: prairie.plugin.v1.TargetStatus
+	(*CheckStatusResponse)(nil),       // 13: prairie.plugin.v1.CheckStatusResponse
+	(*ConfigOption)(nil),              // 14: prairie.plugin.v1.ConfigOption
+	(*ConfigOptionList)(nil),          // 15: prairie.plugin.v1.ConfigOptionList
+	(*ListConfigOptionsRequest)(nil),  // 16: prairie.plugin.v1.ListConfigOptionsRequest
+	(*ListConfigOptionsResponse)(nil), // 17: prairie.plugin.v1.ListConfigOptionsResponse
+	(*TestConnectionRequest)(nil),     // 18: prairie.plugin.v1.TestConnectionRequest
+	(*TestConnectionResponse)(nil),    // 19: prairie.plugin.v1.TestConnectionResponse
+	(*ValidateRequest)(nil),           // 20: prairie.plugin.v1.ValidateRequest
+	(*ValidateResponse)(nil),          // 21: prairie.plugin.v1.ValidateResponse
+	nil,                               // 22: prairie.plugin.v1.RequestDescriptor.ExternalIdsEntry
+	nil,                               // 23: prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
+	nil,                               // 24: prairie.plugin.v1.ValidateResponse.FieldErrorsEntry
+	(*structpb.Struct)(nil),           // 25: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),     // 26: google.protobuf.Timestamp
 }
 var file_prairie_plugin_v1_request_router_proto_depIdxs = []int32{
-	20, // 0: prairie.plugin.v1.RequestDescriptor.external_ids:type_name -> prairie.plugin.v1.RequestDescriptor.ExternalIdsEntry
-	23, // 1: prairie.plugin.v1.RouterConnection.config:type_name -> google.protobuf.Struct
-	0,  // 2: prairie.plugin.v1.FulfillRequest.request:type_name -> prairie.plugin.v1.RequestDescriptor
-	3,  // 3: prairie.plugin.v1.FulfillRequest.qualities:type_name -> prairie.plugin.v1.RequestedQuality
-	2,  // 4: prairie.plugin.v1.FulfillRequest.connections:type_name -> prairie.plugin.v1.RouterConnection
-	5,  // 5: prairie.plugin.v1.FulfillResponse.targets:type_name -> prairie.plugin.v1.FulfillmentTarget
-	0,  // 6: prairie.plugin.v1.CheckStatusRequest.request:type_name -> prairie.plugin.v1.RequestDescriptor
-	7,  // 7: prairie.plugin.v1.CheckStatusRequest.targets:type_name -> prairie.plugin.v1.TargetRef
-	2,  // 8: prairie.plugin.v1.CheckStatusRequest.connections:type_name -> prairie.plugin.v1.RouterConnection
-	24, // 9: prairie.plugin.v1.DownloadProgress.estimated_completion:type_name -> google.protobuf.Timestamp
-	9,  // 10: prairie.plugin.v1.TargetStatus.progress:type_name -> prairie.plugin.v1.DownloadProgress
-	10, // 11: prairie.plugin.v1.CheckStatusResponse.statuses:type_name -> prairie.plugin.v1.TargetStatus
-	12, // 12: prairie.plugin.v1.ConfigOptionList.options:type_name -> prairie.plugin.v1.ConfigOption
-	2,  // 13: prairie.plugin.v1.ListConfigOptionsRequest.connection:type_name -> prairie.plugin.v1.RouterConnection
-	21, // 14: prairie.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
-	2,  // 15: prairie.plugin.v1.TestConnectionRequest.connection:type_name -> prairie.plugin.v1.RouterConnection
-	2,  // 16: prairie.plugin.v1.ValidateRequest.connection:type_name -> prairie.plugin.v1.RouterConnection
-	2,  // 17: prairie.plugin.v1.ValidateRequest.siblings:type_name -> prairie.plugin.v1.RouterConnection
-	22, // 18: prairie.plugin.v1.ValidateResponse.field_errors:type_name -> prairie.plugin.v1.ValidateResponse.FieldErrorsEntry
-	13, // 19: prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> prairie.plugin.v1.ConfigOptionList
-	4,  // 20: prairie.plugin.v1.RequestRouter.Fulfill:input_type -> prairie.plugin.v1.FulfillRequest
-	8,  // 21: prairie.plugin.v1.RequestRouter.CheckStatus:input_type -> prairie.plugin.v1.CheckStatusRequest
-	14, // 22: prairie.plugin.v1.RequestRouter.ListConfigOptions:input_type -> prairie.plugin.v1.ListConfigOptionsRequest
-	16, // 23: prairie.plugin.v1.RequestRouter.TestConnection:input_type -> prairie.plugin.v1.TestConnectionRequest
-	18, // 24: prairie.plugin.v1.RequestRouter.Validate:input_type -> prairie.plugin.v1.ValidateRequest
-	6,  // 25: prairie.plugin.v1.RequestRouter.Fulfill:output_type -> prairie.plugin.v1.FulfillResponse
-	11, // 26: prairie.plugin.v1.RequestRouter.CheckStatus:output_type -> prairie.plugin.v1.CheckStatusResponse
-	15, // 27: prairie.plugin.v1.RequestRouter.ListConfigOptions:output_type -> prairie.plugin.v1.ListConfigOptionsResponse
-	17, // 28: prairie.plugin.v1.RequestRouter.TestConnection:output_type -> prairie.plugin.v1.TestConnectionResponse
-	19, // 29: prairie.plugin.v1.RequestRouter.Validate:output_type -> prairie.plugin.v1.ValidateResponse
-	25, // [25:30] is the sub-list for method output_type
-	20, // [20:25] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	22, // 0: prairie.plugin.v1.RequestDescriptor.external_ids:type_name -> prairie.plugin.v1.RequestDescriptor.ExternalIdsEntry
+	2,  // 1: prairie.plugin.v1.RequestRouterDescriptor.wording:type_name -> prairie.plugin.v1.RequestRouterWording
+	3,  // 2: prairie.plugin.v1.RequestRouterWording.queued:type_name -> prairie.plugin.v1.RequestStatusWording
+	3,  // 3: prairie.plugin.v1.RequestRouterWording.downloading:type_name -> prairie.plugin.v1.RequestStatusWording
+	25, // 4: prairie.plugin.v1.RouterConnection.config:type_name -> google.protobuf.Struct
+	0,  // 5: prairie.plugin.v1.FulfillRequest.request:type_name -> prairie.plugin.v1.RequestDescriptor
+	5,  // 6: prairie.plugin.v1.FulfillRequest.qualities:type_name -> prairie.plugin.v1.RequestedQuality
+	4,  // 7: prairie.plugin.v1.FulfillRequest.connections:type_name -> prairie.plugin.v1.RouterConnection
+	3,  // 8: prairie.plugin.v1.FulfillmentTarget.wording:type_name -> prairie.plugin.v1.RequestStatusWording
+	7,  // 9: prairie.plugin.v1.FulfillResponse.targets:type_name -> prairie.plugin.v1.FulfillmentTarget
+	0,  // 10: prairie.plugin.v1.CheckStatusRequest.request:type_name -> prairie.plugin.v1.RequestDescriptor
+	9,  // 11: prairie.plugin.v1.CheckStatusRequest.targets:type_name -> prairie.plugin.v1.TargetRef
+	4,  // 12: prairie.plugin.v1.CheckStatusRequest.connections:type_name -> prairie.plugin.v1.RouterConnection
+	26, // 13: prairie.plugin.v1.DownloadProgress.estimated_completion:type_name -> google.protobuf.Timestamp
+	11, // 14: prairie.plugin.v1.TargetStatus.progress:type_name -> prairie.plugin.v1.DownloadProgress
+	3,  // 15: prairie.plugin.v1.TargetStatus.wording:type_name -> prairie.plugin.v1.RequestStatusWording
+	12, // 16: prairie.plugin.v1.CheckStatusResponse.statuses:type_name -> prairie.plugin.v1.TargetStatus
+	14, // 17: prairie.plugin.v1.ConfigOptionList.options:type_name -> prairie.plugin.v1.ConfigOption
+	4,  // 18: prairie.plugin.v1.ListConfigOptionsRequest.connection:type_name -> prairie.plugin.v1.RouterConnection
+	23, // 19: prairie.plugin.v1.ListConfigOptionsResponse.options_by_field:type_name -> prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry
+	4,  // 20: prairie.plugin.v1.TestConnectionRequest.connection:type_name -> prairie.plugin.v1.RouterConnection
+	4,  // 21: prairie.plugin.v1.ValidateRequest.connection:type_name -> prairie.plugin.v1.RouterConnection
+	4,  // 22: prairie.plugin.v1.ValidateRequest.siblings:type_name -> prairie.plugin.v1.RouterConnection
+	24, // 23: prairie.plugin.v1.ValidateResponse.field_errors:type_name -> prairie.plugin.v1.ValidateResponse.FieldErrorsEntry
+	15, // 24: prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntry.value:type_name -> prairie.plugin.v1.ConfigOptionList
+	6,  // 25: prairie.plugin.v1.RequestRouter.Fulfill:input_type -> prairie.plugin.v1.FulfillRequest
+	10, // 26: prairie.plugin.v1.RequestRouter.CheckStatus:input_type -> prairie.plugin.v1.CheckStatusRequest
+	16, // 27: prairie.plugin.v1.RequestRouter.ListConfigOptions:input_type -> prairie.plugin.v1.ListConfigOptionsRequest
+	18, // 28: prairie.plugin.v1.RequestRouter.TestConnection:input_type -> prairie.plugin.v1.TestConnectionRequest
+	20, // 29: prairie.plugin.v1.RequestRouter.Validate:input_type -> prairie.plugin.v1.ValidateRequest
+	8,  // 30: prairie.plugin.v1.RequestRouter.Fulfill:output_type -> prairie.plugin.v1.FulfillResponse
+	13, // 31: prairie.plugin.v1.RequestRouter.CheckStatus:output_type -> prairie.plugin.v1.CheckStatusResponse
+	17, // 32: prairie.plugin.v1.RequestRouter.ListConfigOptions:output_type -> prairie.plugin.v1.ListConfigOptionsResponse
+	19, // 33: prairie.plugin.v1.RequestRouter.TestConnection:output_type -> prairie.plugin.v1.TestConnectionResponse
+	21, // 34: prairie.plugin.v1.RequestRouter.Validate:output_type -> prairie.plugin.v1.ValidateResponse
+	30, // [30:35] is the sub-list for method output_type
+	25, // [25:30] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_prairie_plugin_v1_request_router_proto_init() }
@@ -1527,7 +1713,7 @@ func file_prairie_plugin_v1_request_router_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prairie_plugin_v1_request_router_proto_rawDesc), len(file_prairie_plugin_v1_request_router_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   23,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

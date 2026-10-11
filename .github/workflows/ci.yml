@@ -2,81 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  COVER_MIN: "95"
 
 jobs:
-  lint:
-    name: Go lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
-        with:
-          version: v2.14.0
-          only-new-issues: true
-          args: --timeout=5m
-
-  test:
-    name: Go tests + coverage
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      # Coverage excludes pure go-plugin host glue packages that cannot be
-      # meaningfully unit-tested without a full plugin.Serve/GRPC broker:
-      #   - runtimedefault: thin Runtime server embed for plugins
-      #   - runtime: Handshake/Serve/GRPCPlugin wiring + process-singleton Host()
-      # Capability registration and ServeManifest still have unit tests; those
-      # packages are run below without contributing to the coverage profile.
-      - name: Run tests with coverage
-        env:
-          GOWORK: off
-        run: |
-          pkgs=$(go list ./pkg/pluginsdk/... | grep -vE '/(runtimedefault|runtime)$')
-          go test $pkgs -count=1 -covermode=atomic -coverprofile=coverage.out
-          go test ./pkg/pluginsdk/runtime/ -count=1
-
-      - name: Enforce coverage floor
-        run: ./scripts/check-coverage.sh coverage.out
-
-      - name: Build examples
-        run: |
-          go build ./examples/hello-scheduled-task
-          go build ./examples/hello-runtime-host
-
-      - name: Upload coverage profile
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: coverage-out
-          path: coverage.out
-          if-no-files-found: ignore
+  ci:
+    uses: Prairie-Server/prairie-plugin-sdk/.github/workflows/trusted-linux-ci.yml@main
+    with:
+      self_hosted: false

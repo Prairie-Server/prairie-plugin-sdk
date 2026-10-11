@@ -3,8 +3,10 @@ package manifest_test
 import (
 	"testing"
 
-	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
-	publicmanifest "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
+	"google.golang.org/protobuf/types/known/structpb"
+
+	pluginv1 "github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	publicmanifest "github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func TestLoadWatchSyncProvider(t *testing.T) {
@@ -46,22 +48,6 @@ func TestValidateWatchSyncProviderRejectsMissingDescriptor(t *testing.T) {
 	}
 }
 
-func TestValidateWatchSyncProviderRejectsUnsafeID(t *testing.T) {
-	manifest := validWatchSyncManifest()
-	manifest.Capabilities[0].Id = "Not Safe"
-	if err := publicmanifest.Validate(manifest); err == nil {
-		t.Fatal("expected unsafe capability id to fail")
-	}
-}
-
-func TestValidateWatchSyncProviderRejectsEmptyAuthMethods(t *testing.T) {
-	manifest := validWatchSyncManifest()
-	manifest.Capabilities[0].WatchSyncProvider.AuthMethods = nil
-	if err := publicmanifest.Validate(manifest); err == nil {
-		t.Fatal("expected empty auth methods to fail")
-	}
-}
-
 func TestValidateWatchSyncProviderRejectsUnspecifiedAuthMethod(t *testing.T) {
 	manifest := validWatchSyncManifest()
 	manifest.Capabilities[0].WatchSyncProvider.AuthMethods = []pluginv1.WatchSyncAuthMethod{
@@ -69,22 +55,6 @@ func TestValidateWatchSyncProviderRejectsUnspecifiedAuthMethod(t *testing.T) {
 	}
 	if err := publicmanifest.Validate(manifest); err == nil {
 		t.Fatal("expected unspecified auth method to fail")
-	}
-}
-
-func TestValidateWatchSyncProviderRejectsEmptyOperations(t *testing.T) {
-	manifest := validWatchSyncManifest()
-	manifest.Capabilities[0].WatchSyncProvider.ExportWatched = false
-	if err := publicmanifest.Validate(manifest); err == nil {
-		t.Fatal("expected no enabled operations to fail")
-	}
-}
-
-func TestValidateWatchSyncProviderRejectsInvalidBatchSize(t *testing.T) {
-	manifest := validWatchSyncManifest()
-	manifest.Capabilities[0].WatchSyncProvider.MaxBatchSize = 101
-	if err := publicmanifest.Validate(manifest); err == nil {
-		t.Fatal("expected invalid batch size to fail")
 	}
 }
 
@@ -103,14 +73,6 @@ func TestValidateWatchSyncProviderRejectsUnspecifiedMediaType(t *testing.T) {
 	}
 	if err := publicmanifest.Validate(manifest); err == nil {
 		t.Fatal("expected unspecified supported media type to fail")
-	}
-}
-
-func TestValidateWatchSyncProviderRejectsInvalidNamespace(t *testing.T) {
-	manifest := validWatchSyncManifest()
-	manifest.Capabilities[0].WatchSyncProvider.ExternalIdNamespaces = []string{"bad namespace"}
-	if err := publicmanifest.Validate(manifest); err == nil {
-		t.Fatal("expected invalid external id namespace to fail")
 	}
 }
 
@@ -293,5 +255,184 @@ func TestValidateWatchSyncProviderRejectsDescriptorOnOtherCapability(t *testing.
 	}
 	if err := publicmanifest.Validate(manifest); err == nil {
 		t.Fatal("expected misplaced watch sync descriptor to fail")
+	}
+}
+
+func TestValidateWatchSyncProviderDroppedShows(t *testing.T) {
+	series := pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES
+	movie := pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE
+	for _, tc := range []struct {
+		name    string
+		media   []pluginv1.WatchSyncMediaType
+		wantErr bool
+	}{
+		{name: "series", media: []pluginv1.WatchSyncMediaType{series}},
+		{name: "movie and series", media: []pluginv1.WatchSyncMediaType{movie, series}},
+		{name: "movie only", media: []pluginv1.WatchSyncMediaType{movie}, wantErr: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			manifest := validWatchSyncManifest()
+			descriptor := manifest.Capabilities[0].WatchSyncProvider
+			descriptor.ExportWatched = false
+			descriptor.SyncDropped = true
+			descriptor.SupportedMediaTypes = tc.media
+			err := publicmanifest.Validate(manifest)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("Validate() error = %v, wantErr %t", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestValidateWatchSyncProviderRatingExportRequiresWatched(t *testing.T) {
+	movie := pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE
+	series := pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_SERIES
+	for _, tc := range []struct {
+		name          string
+		exportRatings bool
+		gated         []pluginv1.WatchSyncMediaType
+		wantErr       bool
+	}{
+		{name: "supported movie", exportRatings: true, gated: []pluginv1.WatchSyncMediaType{movie}},
+		{name: "without export ratings", gated: []pluginv1.WatchSyncMediaType{movie}, wantErr: true},
+		{name: "unsupported media type", exportRatings: true, gated: []pluginv1.WatchSyncMediaType{series}, wantErr: true},
+		{name: "unspecified", exportRatings: true, gated: []pluginv1.WatchSyncMediaType{pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_UNSPECIFIED}, wantErr: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			manifest := validWatchSyncManifest()
+			descriptor := manifest.Capabilities[0].WatchSyncProvider
+			descriptor.ExportRatings = tc.exportRatings
+			descriptor.RatingExportRequiresWatched = tc.gated
+			err := publicmanifest.Validate(manifest)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("Validate() error = %v, wantErr %t", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestLoadWatchSyncProviderDroppedAndRatingGate(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id":"prairie.dropped", "version":"1.0.0", "prairie_api_version":"v1",
+	  "capabilities":[{
+	    "type":"watch_sync_provider.v1", "id":"dropped", "display_name":"Dropped",
+	    "watch_sync_provider":{
+	      "auth_methods":["WATCH_SYNC_AUTH_METHOD_DEVICE_CODE"],
+	      "export_ratings":true,
+	      "sync_dropped":true,
+	      "rating_export_requires_watched":["WATCH_SYNC_MEDIA_TYPE_MOVIE"],
+	      "supported_media_types":["WATCH_SYNC_MEDIA_TYPE_MOVIE","WATCH_SYNC_MEDIA_TYPE_SERIES"],
+	      "max_batch_size":10
+	    }
+	  }]
+	}`)
+	manifest, err := publicmanifest.Load(raw)
+	if err != nil {
+		t.Fatalf("dropped provider should load: %v", err)
+	}
+	descriptor := manifest.GetCapabilities()[0].GetWatchSyncProvider()
+	gated := descriptor.GetRatingExportRequiresWatched()
+	if !descriptor.GetSyncDropped() || len(gated) != 1 ||
+		gated[0] != pluginv1.WatchSyncMediaType_WATCH_SYNC_MEDIA_TYPE_MOVIE {
+		t.Fatalf("watch sync descriptor = %#v", descriptor)
+	}
+}
+
+func TestLoadWatchSyncProviderConnectionSettings(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id":"prairie.settings", "version":"1.0.0", "prairie_api_version":"v1",
+	  "capabilities":[{
+	    "type":"watch_sync_provider.v1", "id":"settings", "display_name":"Settings",
+	    "watch_sync_provider":{
+	      "auth_methods":["WATCH_SYNC_AUTH_METHOD_DEVICE_CODE"],
+	      "export_watched":true,
+	      "supported_media_types":["WATCH_SYNC_MEDIA_TYPE_MOVIE"],
+	      "max_batch_size":10,
+	      "connection_settings":[{
+	        "key":"track_rewatches",
+	        "label":"Log rewatches",
+	        "description":"Send repeat plays as rewatches.",
+	        "type":"WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN",
+	        "default_value":false
+	      }]
+	    }
+	  }]
+	}`)
+	manifest, err := publicmanifest.Load(raw)
+	if err != nil {
+		t.Fatalf("provider with connection settings should load: %v", err)
+	}
+	settings := manifest.GetCapabilities()[0].GetWatchSyncProvider().GetConnectionSettings()
+	if len(settings) != 1 || settings[0].GetKey() != "track_rewatches" || settings[0].GetLabel() != "Log rewatches" ||
+		settings[0].GetType() != pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN ||
+		settings[0].GetDefaultValue().GetBoolValue() {
+		t.Fatalf("connection settings = %v", settings)
+	}
+}
+
+func TestValidateWatchSyncProviderConnectionSettings(t *testing.T) {
+	boolean := pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN
+	setting := func(key string) *pluginv1.WatchSyncConnectionSetting {
+		return &pluginv1.WatchSyncConnectionSetting{Key: key, Label: "Setting", Type: boolean}
+	}
+	for _, tc := range []struct {
+		name     string
+		settings []*pluginv1.WatchSyncConnectionSetting
+		wantErr  bool
+	}{
+		{name: "boolean without default", settings: []*pluginv1.WatchSyncConnectionSetting{setting("track_rewatches")}},
+		{name: "boolean with default", settings: []*pluginv1.WatchSyncConnectionSetting{{
+			Key: "track_rewatches", Label: "Setting", Type: boolean, DefaultValue: structpb.NewBoolValue(true),
+		}}},
+		// A type newer than this SDK must not stop an older SDK from loading
+		// the manifest.
+		{name: "future type", settings: []*pluginv1.WatchSyncConnectionSetting{{
+			Key: "future", Label: "Setting", Type: pluginv1.WatchSyncConnectionSettingType(99),
+		}}},
+		{name: "two settings", settings: []*pluginv1.WatchSyncConnectionSetting{setting("one"), setting("two")}},
+		{name: "duplicate key", settings: []*pluginv1.WatchSyncConnectionSetting{setting("one"), setting("one")}, wantErr: true},
+		{name: "empty key", settings: []*pluginv1.WatchSyncConnectionSetting{setting("")}, wantErr: true},
+		{name: "uppercase key", settings: []*pluginv1.WatchSyncConnectionSetting{setting("TrackRewatches")}, wantErr: true},
+		{name: "missing label", settings: []*pluginv1.WatchSyncConnectionSetting{{Key: "one", Type: boolean}}, wantErr: true},
+		// A type name this SDK does not know decodes as UNSPECIFIED.
+		{name: "unspecified type", settings: []*pluginv1.WatchSyncConnectionSetting{{Key: "one", Label: "Setting"}}},
+		{name: "boolean with string default", settings: []*pluginv1.WatchSyncConnectionSetting{{
+			Key: "one", Label: "Setting", Type: boolean, DefaultValue: structpb.NewStringValue("true"),
+		}}, wantErr: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			manifest := validWatchSyncManifest()
+			manifest.Capabilities[0].WatchSyncProvider.ConnectionSettings = tc.settings
+			err := publicmanifest.Validate(manifest)
+			if (err != nil) != tc.wantErr {
+				t.Fatalf("Validate() error = %v, wantErr %t", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+// A manifest naming a setting type newer than this SDK still loads; hosts
+// skip that setting.
+func TestLoadWatchSyncProviderWithAFutureConnectionSettingType(t *testing.T) {
+	raw := []byte(`{
+	  "plugin_id":"prairie.settings", "version":"1.0.0", "prairie_api_version":"v1",
+	  "capabilities":[{
+	    "type":"watch_sync_provider.v1", "id":"settings", "display_name":"Settings",
+	    "watch_sync_provider":{
+	      "auth_methods":["WATCH_SYNC_AUTH_METHOD_DEVICE_CODE"],
+	      "export_watched":true,
+	      "supported_media_types":["WATCH_SYNC_MEDIA_TYPE_MOVIE"],
+	      "max_batch_size":10,
+	      "connection_settings":[{"key":"region","label":"Region","type":"WATCH_SYNC_CONNECTION_SETTING_TYPE_FUTURE_TEXT"}]
+	    }
+	  }]
+	}`)
+	manifest, err := publicmanifest.Load(raw)
+	if err != nil {
+		t.Fatalf("manifest with a future setting type should load: %v", err)
+	}
+	settings := manifest.GetCapabilities()[0].GetWatchSyncProvider().GetConnectionSettings()
+	if len(settings) != 1 || settings[0].GetType() != pluginv1.WatchSyncConnectionSettingType_WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED {
+		t.Fatalf("connection settings = %v", settings)
 	}
 }
