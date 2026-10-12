@@ -138,12 +138,12 @@ func TestAuthProviderChecksRoundTrip(t *testing.T) {
 
 	logout, err := client.AuthProviderChecks().EndSessionUrl(ctx, &pluginv1.AuthEndSessionUrlRequest{
 		ExternalSubject:       "sub-1",
-		PostLogoutRedirectUri: "https://silo.example/login",
+		PostLogoutRedirectUri: "https://prairie.example/login",
 	})
 	if err != nil {
 		t.Fatalf("EndSessionUrl = %v", err)
 	}
-	if logout.GetUrl() != "https://id.example/logout?post_logout_redirect_uri=https://silo.example/login" {
+	if logout.GetUrl() != "https://id.example/logout?post_logout_redirect_uri=https://prairie.example/login" {
 		t.Fatalf("EndSessionUrl url = %q", logout.GetUrl())
 	}
 }

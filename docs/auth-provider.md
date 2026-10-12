@@ -1,9 +1,9 @@
 # Auth providers (`auth_provider.v1`)
 
-An auth provider lets people sign in to Silo with an account that lives
+An auth provider lets people sign in to Prairie with an account that lives
 somewhere else: an OIDC identity provider, an LDAP directory, or a billing
 system. The plugin talks to the provider and returns an identity. The host owns
-Silo accounts, account linking, sessions, roles, and the login UI.
+Prairie accounts, account linking, sessions, roles, and the login UI.
 
 ## Manifest
 
@@ -112,11 +112,11 @@ Fields added in v0.22.0, all optional:
 | Field | Meaning |
 |---|---|
 | `issuer` | Who asserted the subject, such as an OIDC `iss` or an LDAP URL. Informational. |
-| `username` | Preferred login name; the base for a new Silo username. |
+| `username` | Preferred login name; the base for a new Prairie username. |
 | `email_verified` | Whether the provider verified `email`. Unset means the provider did not say; `false` is a real answer. Pass the provider's value through as-is. |
 | `groups` | Group names after the plugin's normalization. |
 | `picture_url` | Absolute `http` or `https` URL of the account picture. |
-| `managed_role` | `USER` or `ADMIN` when the plugin's group rules decide the Silo role. `UNSPECIFIED` leaves the role to the host. |
+| `managed_role` | `USER` or `ADMIN` when the plugin's group rules decide the Prairie role. `UNSPECIFIED` leaves the role to the host. |
 | `refresh_state` | Opaque state for later `CheckAccount` calls, such as a refresh token. The host stores it encrypted and sends it back unchanged. Unset keeps the stored state; an empty Struct clears it. |
 | `denial`, `denial_detail` | Why the provider refused the sign-in. See below. |
 
@@ -148,7 +148,7 @@ A gRPC error still means an unexpected failure.
 `InitAuthorizeRequest` gained `prompt` (an OIDC `prompt` value such as `login`
 or `select_account`) and `login_hint`. Empty values mean the plugin's
 configured default and no hint. `linking` is true when a signed-in user is
-linking the provider to an existing Silo account.
+linking the provider to an existing Prairie account.
 
 ## Network identity (`NetworkIdentityAuth`)
 
@@ -169,7 +169,7 @@ startup check.
 
 The flow:
 
-1. The plugin's proxy stamps `X-Silo-Ingress-Peer` on a request it forwards
+1. The plugin's proxy stamps `X-Prairie-Ingress-Peer` on a request it forwards
    when the proxy contract in
    [network-access-provider.md](network-access-provider.md#proxy-contract)
    allows it: only for a connection from a peer it identifies on its overlay,
@@ -180,7 +180,7 @@ The flow:
 3. The plugin looks the peer up on its overlay and answers with the same
    `AuthenticateResponse` as `Authenticate`: a stable `external_subject` for
    the person (not the device), their names, and `managed_role` when the
-   overlay's policy decides the Silo role. Refuse with `NOT_PERMITTED` a peer
+   overlay's policy decides the Prairie role. Refuse with `NOT_PERMITTED` a peer
    it will not vouch for, such as an unknown address, a device with no person
    behind it, or one its policy refuses, and with `PROVIDER_UNAVAILABLE` while
    the overlay is down.
@@ -244,7 +244,7 @@ the plugin, without the person present.
 | `ACTIVE` | The account exists and passes the access rules. Return current details in `account`. |
 | `NOT_FOUND` | The provider no longer knows the account. |
 | `DISABLED` | The provider disabled or locked it. |
-| `NOT_PERMITTED` | It exists but no longer passes the access rules. The host revokes the account's Silo sessions and deletes its API keys. Use it for a refused refresh token only under the rule below. |
+| `NOT_PERMITTED` | It exists but no longer passes the access rules. The host revokes the account's Prairie sessions and deletes its API keys. Use it for a refused refresh token only under the rule below. |
 | `UNSUPPORTED` | The plugin cannot check it, for example because the provider never issued a refresh token. The host gives the account's sessions an absolute age limit. Once the person has not signed in through the provider within `auth.refresh_token_expiry` (30 days by default), the host also deletes the account's API keys and revokes its Audiobookshelf sessions. Also use it for a refused refresh token that may have expired. |
 | `UNAVAILABLE` | The provider could not be reached. The host retries and does not treat this as a denial. |
 | `UNSPECIFIED` | Not an answer; a zero-value response decodes to it. |
@@ -255,7 +255,7 @@ token only when you know the token was inside its lifetime, for example from
 the provider's expiry hint or a lifetime the admin configured; then the
 refusal can only be a revocation. Otherwise answer `UNSUPPORTED`. A
 `NOT_PERMITTED` for a token that merely expired would sign the person out of
-every Silo session and delete their API keys.
+every Prairie session and delete their API keys.
 
 Hosts treat `UNSPECIFIED`, a status they don't recognize, and a gRPC error
 other than `Unimplemented` like `UNAVAILABLE`: they log, keep the account as it
@@ -293,7 +293,7 @@ unchanged.
 ### EndSessionUrl
 
 On web sign-out the web client asks the host for the provider logout URL
-while the Silo session is still valid, then ends the Silo session and
+while the Prairie session is still valid, then ends the Prairie session and
 navigates the browser to the URL itself. To answer, the host calls
 `EndSessionUrl` with the account's `external_subject`, its latest
 `refresh_state`, and the `post_logout_redirect_uri` to return to. The host

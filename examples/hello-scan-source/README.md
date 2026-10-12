@@ -1,6 +1,6 @@
 # Hello Scan Source
 
-A minimal `scan_source.v1` plugin for Silo Autoscan. Another tool appends
+A minimal `scan_source.v1` plugin for Prairie Autoscan. Another tool appends
 changed paths to a change-log file, one per line, and each poll returns the
 lines added since the previous poll.
 
@@ -29,7 +29,7 @@ See [docs/scan-source.md](../../docs/scan-source.md) for the full contract.
 
 ## Build
 
-Build for the platform your Silo server runs on, usually Linux. For an ARM
+Build for the platform your Prairie server runs on, usually Linux. For an ARM
 server, use `GOARCH=arm64`:
 
 ```sh
@@ -50,24 +50,24 @@ On a matching platform:
 go test ./examples/hello-scan-source
 ```
 
-## Try it in Silo
+## Try it in Prairie
 
 1. Upload the binary in **Admin → Plugins**.
 2. In **Admin → Libraries → Autoscan**, enable Autoscan, choose **Add
-   source**, pick **Change log file**, and enter the log path as the Silo
-   server sees it, for example `/data/silo-changes.log`.
+   source**, pick **Change log file**, and enter the log path as the Prairie
+   server sees it, for example `/data/prairie-changes.log`.
 3. Wait for one poll so the source records its starting position. Lower the
    global poll interval in the Autoscan settings to make this quicker.
 4. Append a path inside one of your libraries:
 
    ```sh
-   echo "/data/movies/Example (2024)/Example (2024).mkv" >> /data/silo-changes.log
+   echo "/data/movies/Example (2024)/Example (2024).mkv" >> /data/prairie-changes.log
    ```
 
    After the next poll, the source's activity log shows the change and the
    scan it queued.
 
-The file must be readable from inside the Silo server's environment, such as
-its container. With more than one Silo node, any node in `api` or
+The file must be readable from inside the Prairie server's environment, such as
+its container. With more than one Prairie node, any node in `api` or
 `integrated` mode can run a poll, so the path must reach the same file on
 every one of them, for example on a shared mount.

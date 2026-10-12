@@ -100,7 +100,7 @@ For every request the plugin forwards to a host listener:
 - Set `X-Prairie-Ingress-Token` to the value from `GetHostInfo`, replacing any
   client-supplied value; the host answers 403 when the header carries more
   than one value.
-- Remove any client-supplied `X-Silo-Ingress-Peer`, then set it to the overlay
+- Remove any client-supplied `X-Prairie-Ingress-Peer`, then set it to the overlay
   peer's IP address (no port) when the plugin can identify that peer on its
   overlay. Never set it for a connection that did not come from an overlay
   peer, such as traffic a public relay forwards. Leave it out, too, for a
