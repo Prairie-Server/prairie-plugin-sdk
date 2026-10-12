@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	runtime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	runtime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
 )
 
 // legacyAuthProvider is an auth server written before v0.22.0: it implements
@@ -65,7 +65,7 @@ func TestGRPCServerRegistersAuthProviderChecksWhenImplemented(t *testing.T) {
 		Runtime:      stubRuntime{},
 		AuthProvider: &checkingAuthProvider{},
 	})
-	for _, name := range []string{"silo.plugin.v1.AuthProvider", "silo.plugin.v1.AuthProviderChecks"} {
+	for _, name := range []string{"prairie.plugin.v1.AuthProvider", "prairie.plugin.v1.AuthProviderChecks"} {
 		if _, ok := services[name]; !ok {
 			t.Fatalf("%s not registered; got %v", name, services)
 		}
@@ -77,10 +77,10 @@ func TestGRPCServerSkipsAuthProviderChecksForLegacyServer(t *testing.T) {
 		Runtime:      stubRuntime{},
 		AuthProvider: legacyAuthProvider{},
 	})
-	if _, ok := services["silo.plugin.v1.AuthProvider"]; !ok {
+	if _, ok := services["prairie.plugin.v1.AuthProvider"]; !ok {
 		t.Fatalf("AuthProvider not registered; got %v", services)
 	}
-	if _, ok := services["silo.plugin.v1.AuthProviderChecks"]; ok {
+	if _, ok := services["prairie.plugin.v1.AuthProviderChecks"]; ok {
 		t.Fatal("AuthProviderChecks registered for a server that does not implement it")
 	}
 }

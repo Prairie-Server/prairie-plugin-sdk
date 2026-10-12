@@ -5,7 +5,7 @@ package prairie.plugin.v1;
 option go_package = "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1";
 
 import "google/protobuf/struct.proto";
-import "silo/plugin/v1/common.proto";
+import "prairie/plugin/v1/common.proto";
 
 service AuthProvider {
   // Authenticate handles password-based login. Existing surface.
@@ -58,7 +58,7 @@ service AuthProviderChecks {
 
   // EndSessionUrl returns the provider logout URL the host sends the browser
   // to on web sign-out, such as an OIDC end_session_endpoint with
-  // id_token_hint. The host ends the Silo session whatever the answer.
+  // id_token_hint. The host ends the Prairie session whatever the answer.
   rpc EndSessionUrl(AuthEndSessionUrlRequest) returns (AuthEndSessionUrlResponse);
 }
 
@@ -79,7 +79,7 @@ service AuthProviderChecks {
 service NetworkIdentityAuth {
   // AuthenticatePeer identifies the overlay peer of a request this plugin
   // proxied. The host calls it only for a request that carried the ingress
-  // token it issued to this plugin installation and an X-Silo-Ingress-Peer
+  // token it issued to this plugin installation and an X-Prairie-Ingress-Peer
   // value, and passes that value here. The answer has the same shape and
   // denials as Authenticate: NOT_PERMITTED for a peer the plugin will not
   // vouch for (unknown, tagged or refused by policy) and PROVIDER_UNAVAILABLE
@@ -89,11 +89,11 @@ service NetworkIdentityAuth {
 
 message AuthenticatePeerRequest {
   // Overlay address of the peer as the plugin stamped it in
-  // X-Silo-Ingress-Peer: an IP literal without a port.
+  // X-Prairie-Ingress-Peer: an IP literal without a port.
   string peer_address = 1;
 }
 
-// AuthManagedRole is the Silo role a provider asks the host to apply to the
+// AuthManagedRole is the Prairie role a provider asks the host to apply to the
 // account. UNSPECIFIED leaves the role to the host.
 enum AuthManagedRole {
   AUTH_MANAGED_ROLE_UNSPECIFIED = 0;
@@ -133,7 +133,7 @@ message AuthenticateResponse {
   // server URL. Informational; the host keys identities by installation and
   // external_subject.
   string issuer = 5;
-  // Preferred login name, used as the base for a new Silo username.
+  // Preferred login name, used as the base for a new Prairie username.
   string username = 6;
   // Whether the provider verified email. Unset means the provider did not say.
   optional bool email_verified = 7;
@@ -225,7 +225,7 @@ enum CheckAccountStatus {
   // The provider disabled or locked the account.
   CHECK_ACCOUNT_STATUS_DISABLED = 3;
   // The account exists but no longer passes the plugin's access rules. The
-  // host revokes the account's Silo sessions and deletes its API keys.
+  // host revokes the account's Prairie sessions and deletes its API keys.
   //
   // A refused refresh token, such as an OIDC invalid_grant, is NOT_PERMITTED
   // only when the token is known to be inside its lifetime, so the refusal

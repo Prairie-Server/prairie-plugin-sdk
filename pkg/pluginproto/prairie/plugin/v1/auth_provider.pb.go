@@ -1140,13 +1140,13 @@ var File_prairie_plugin_v1_auth_provider_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\n" +
-	"\"prairie/plugin/v1/auth_provider.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bprairie/plugin/v1/common.proto\"<\n" +
+	"%prairie/plugin/v1/auth_provider.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1eprairie/plugin/v1/common.proto\"<\n" +
 	"\x17AuthenticatePeerRequest\x12!\n" +
 	"\fpeer_address\x18\x01 \x01(\tR\vpeerAddress\"\x82\x01\n" +
 	"\x13AuthenticateRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x123\n" +
-	"\bmetadata\x18\x03 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xb2\x04\n" +
+	"\bmetadata\x18\x03 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xb8\x04\n" +
 	"\x14AuthenticateResponse\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x14\n" +
@@ -1157,11 +1157,11 @@ const file_prairie_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\x0eemail_verified\x18\a \x01(\bH\x00R\remailVerified\x88\x01\x01\x12\x16\n" +
 	"\x06groups\x18\b \x03(\tR\x06groups\x12\x1f\n" +
 	"\vpicture_url\x18\t \x01(\tR\n" +
-	"pictureUrl\x12B\n" +
+	"pictureUrl\x12E\n" +
 	"\fmanaged_role\x18\n" +
-	" \x01(\x0e2\x1f.prairie.plugin.v1.AuthManagedRoleR\vmanagedRole\x12<\n" +
-	"\rrefresh_state\x18\v \x01(\v2\x17.google.protobuf.StructR\frefreshState\x122\n" +
-	"\x06denial\x18\f \x01(\x0e2\x1a.prairie.plugin.v1.AuthDenialR\x06denial\x12#\n" +
+	" \x01(\x0e2\".prairie.plugin.v1.AuthManagedRoleR\vmanagedRole\x12<\n" +
+	"\rrefresh_state\x18\v \x01(\v2\x17.google.protobuf.StructR\frefreshState\x125\n" +
+	"\x06denial\x18\f \x01(\x0e2\x1d.prairie.plugin.v1.AuthDenialR\x06denial\x12#\n" +
 	"\rdenial_detail\x18\r \x01(\tR\fdenialDetailB\x11\n" +
 	"\x0f_email_verified\"\xd5\x01\n" +
 	"\x14InitAuthorizeRequest\x12!\n" +
@@ -1182,11 +1182,11 @@ const file_prairie_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\x0eprovider_state\x18\x04 \x01(\v2\x17.google.protobuf.StructR\rproviderState\"\x80\x01\n" +
 	"\x15RefreshSessionRequest\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12<\n" +
-	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\"P\n" +
-	"\x19AuthTestConnectionRequest\x123\n" +
-	"\x06config\x18\x01 \x03(\v2\x1b.prairie.plugin.v1.ConfigEntryR\x06config\"`\n" +
-	"\x1aAuthTestConnectionResponse\x122\n" +
-	"\x05steps\x18\x01 \x03(\v2\x1c.prairie.plugin.v1.AuthTestStepR\x05steps\x12\x0e\n" +
+	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\"S\n" +
+	"\x19AuthTestConnectionRequest\x126\n" +
+	"\x06config\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.ConfigEntryR\x06config\"c\n" +
+	"\x1aAuthTestConnectionResponse\x125\n" +
+	"\x05steps\x18\x01 \x03(\v2\x1f.prairie.plugin.v1.AuthTestStepR\x05steps\x12\x0e\n" +
 	"\x02ok\x18\x02 \x01(\bR\x02ok\"^\n" +
 	"\fAuthTestStep\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
@@ -1195,10 +1195,10 @@ const file_prairie_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\amessage\x18\x04 \x01(\tR\amessage\"~\n" +
 	"\x13CheckAccountRequest\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12<\n" +
-	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\"\x92\x01\n" +
-	"\x14CheckAccountResponse\x12:\n" +
-	"\x06status\x18\x01 \x01(\x0e2\".prairie.plugin.v1.CheckAccountStatusR\x06status\x12>\n" +
-	"\aaccount\x18\x02 \x01(\v2$.prairie.plugin.v1.AuthenticateResponseR\aaccount\"\xbc\x01\n" +
+	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\"\x98\x01\n" +
+	"\x14CheckAccountResponse\x12=\n" +
+	"\x06status\x18\x01 \x01(\x0e2%.prairie.plugin.v1.CheckAccountStatusR\x06status\x12A\n" +
+	"\aaccount\x18\x02 \x01(\v2'.prairie.plugin.v1.AuthenticateResponseR\aaccount\"\xbc\x01\n" +
 	"\x18AuthEndSessionUrlRequest\x12)\n" +
 	"\x10external_subject\x18\x01 \x01(\tR\x0fexternalSubject\x12<\n" +
 	"\rrefresh_state\x18\x02 \x01(\v2\x17.google.protobuf.StructR\frefreshState\x127\n" +
@@ -1224,18 +1224,18 @@ const file_prairie_plugin_v1_auth_provider_proto_rawDesc = "" +
 	"\x1dCHECK_ACCOUNT_STATUS_DISABLED\x10\x03\x12&\n" +
 	"\"CHECK_ACCOUNT_STATUS_NOT_PERMITTED\x10\x04\x12$\n" +
 	" CHECK_ACCOUNT_STATUS_UNSUPPORTED\x10\x05\x12$\n" +
-	" CHECK_ACCOUNT_STATUS_UNAVAILABLE\x10\x062\x81\x03\n" +
-	"\fAuthProvider\x12Y\n" +
-	"\fAuthenticate\x12#.prairie.plugin.v1.AuthenticateRequest\x1a$.prairie.plugin.v1.AuthenticateResponse\x12\\\n" +
-	"\rInitAuthorize\x12$.prairie.plugin.v1.InitAuthorizeRequest\x1a%.prairie.plugin.v1.InitAuthorizeResponse\x12Y\n" +
-	"\fExchangeCode\x12#.prairie.plugin.v1.ExchangeCodeRequest\x1a$.prairie.plugin.v1.AuthenticateResponse\x12]\n" +
-	"\x0eRefreshSession\x12%.prairie.plugin.v1.RefreshSessionRequest\x1a$.prairie.plugin.v1.AuthenticateResponse2\xbe\x02\n" +
-	"\x12AuthProviderChecks\x12g\n" +
-	"\x0eTestConnection\x12).prairie.plugin.v1.AuthTestConnectionRequest\x1a*.prairie.plugin.v1.AuthTestConnectionResponse\x12Y\n" +
-	"\fCheckAccount\x12#.prairie.plugin.v1.CheckAccountRequest\x1a$.prairie.plugin.v1.CheckAccountResponse\x12d\n" +
-	"\rEndSessionUrl\x12(.prairie.plugin.v1.AuthEndSessionUrlRequest\x1a).prairie.plugin.v1.AuthEndSessionUrlResponse2x\n" +
-	"\x13NetworkIdentityAuth\x12a\n" +
-	"\x10AuthenticatePeer\x12'.prairie.plugin.v1.AuthenticatePeerRequest\x1a$.prairie.plugin.v1.AuthenticateResponseBPZNgithub.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	" CHECK_ACCOUNT_STATUS_UNAVAILABLE\x10\x062\x99\x03\n" +
+	"\fAuthProvider\x12_\n" +
+	"\fAuthenticate\x12&.prairie.plugin.v1.AuthenticateRequest\x1a'.prairie.plugin.v1.AuthenticateResponse\x12b\n" +
+	"\rInitAuthorize\x12'.prairie.plugin.v1.InitAuthorizeRequest\x1a(.prairie.plugin.v1.InitAuthorizeResponse\x12_\n" +
+	"\fExchangeCode\x12&.prairie.plugin.v1.ExchangeCodeRequest\x1a'.prairie.plugin.v1.AuthenticateResponse\x12c\n" +
+	"\x0eRefreshSession\x12(.prairie.plugin.v1.RefreshSessionRequest\x1a'.prairie.plugin.v1.AuthenticateResponse2\xd0\x02\n" +
+	"\x12AuthProviderChecks\x12m\n" +
+	"\x0eTestConnection\x12,.prairie.plugin.v1.AuthTestConnectionRequest\x1a-.prairie.plugin.v1.AuthTestConnectionResponse\x12_\n" +
+	"\fCheckAccount\x12&.prairie.plugin.v1.CheckAccountRequest\x1a'.prairie.plugin.v1.CheckAccountResponse\x12j\n" +
+	"\rEndSessionUrl\x12+.prairie.plugin.v1.AuthEndSessionUrlRequest\x1a,.prairie.plugin.v1.AuthEndSessionUrlResponse2~\n" +
+	"\x13NetworkIdentityAuth\x12g\n" +
+	"\x10AuthenticatePeer\x12*.prairie.plugin.v1.AuthenticatePeerRequest\x1a'.prairie.plugin.v1.AuthenticateResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_auth_provider_proto_rawDescOnce sync.Once

@@ -14,8 +14,8 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	pluginv1 "github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
-	"github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginsdk/capability"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/capability"
 )
 
 // Compile-time: manifestRuntime satisfies the Runtime server contract.

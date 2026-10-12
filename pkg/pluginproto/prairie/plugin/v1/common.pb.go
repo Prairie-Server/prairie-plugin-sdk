@@ -1238,7 +1238,7 @@ type PluginManifest struct {
 	PluginId           string                  `protobuf:"bytes,1,opt,name=plugin_id,json=pluginId,proto3" json:"plugin_id,omitempty"`
 	Version            string                  `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 	Checksum           string                  `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
-	PrairieApiVersion     string                  `protobuf:"bytes,4,opt,name=prairie_api_version,json=prairieApiVersion,proto3" json:"prairie_api_version,omitempty"`
+	PrairieApiVersion  string                  `protobuf:"bytes,4,opt,name=prairie_api_version,json=prairieApiVersion,proto3" json:"prairie_api_version,omitempty"`
 	SupportedPlatforms []*SupportedPlatform    `protobuf:"bytes,5,rep,name=supported_platforms,json=supportedPlatforms,proto3" json:"supported_platforms,omitempty"`
 	Capabilities       []*CapabilityDescriptor `protobuf:"bytes,6,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
 	GlobalConfigSchema []*ConfigSchema         `protobuf:"bytes,7,rep,name=global_config_schema,json=globalConfigSchema,proto3" json:"global_config_schema,omitempty"`
@@ -1624,40 +1624,40 @@ var File_prairie_plugin_v1_common_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\n" +
-	"\x1bprairie/plugin/v1/common.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a,prairie/plugin/v1/network_access_provider.proto\x1a#prairie/plugin/v1/request_router.proto\x1a(prairie/plugin/v1/watch_sync_provider.proto\"7\n" +
+	"\x1eprairie/plugin/v1/common.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a/prairie/plugin/v1/network_access_provider.proto\x1a&prairie/plugin/v1/request_router.proto\x1a+prairie/plugin/v1/watch_sync_provider.proto\"7\n" +
 	"\x11SupportedPlatform\x12\x0e\n" +
 	"\x02os\x18\x01 \x01(\tR\x02os\x12\x12\n" +
-	"\x04arch\x18\x02 \x01(\tR\x04arch\"\xd9\x01\n" +
+	"\x04arch\x18\x02 \x01(\tR\x04arch\"\xdc\x01\n" +
 	"\fConfigSchema\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1f\n" +
 	"\vjson_schema\x18\x04 \x01(\tR\n" +
 	"jsonSchema\x12\x1a\n" +
-	"\brequired\x18\x05 \x01(\bR\brequired\x12B\n" +
+	"\brequired\x18\x05 \x01(\bR\brequired\x12E\n" +
 	"\n" +
-	"admin_form\x18\x06 \x01(\v2#.prairie.plugin.v1.AdminFormDescriptorR\tadminForm\"_\n" +
+	"admin_form\x18\x06 \x01(\v2&.prairie.plugin.v1.AdminFormDescriptorR\tadminForm\"_\n" +
 	"\x0fAdminFormOption\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"\xf9\x04\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\"\x85\x05\n" +
 	"\x0eAdminFormField\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12:\n" +
-	"\acontrol\x18\x04 \x01(\x0e2 .prairie.plugin.v1.AdminFormControlR\acontrol\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12=\n" +
+	"\acontrol\x18\x04 \x01(\x0e2#.prairie.plugin.v1.AdminFormControlR\acontrol\x12 \n" +
 	"\vplaceholder\x18\x05 \x01(\tR\vplaceholder\x12\x1a\n" +
 	"\brequired\x18\x06 \x01(\bR\brequired\x12\x16\n" +
 	"\x06secret\x18\a \x01(\bR\x06secret\x12\x1c\n" +
 	"\tmultiline\x18\b \x01(\bR\tmultiline\x12;\n" +
-	"\rdefault_value\x18\t \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\x129\n" +
+	"\rdefault_value\x18\t \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\x12<\n" +
 	"\aoptions\x18\n" +
-	" \x03(\v2\x1f.prairie.plugin.v1.AdminFormOptionR\aoptions\x12\x12\n" +
+	" \x03(\v2\".prairie.plugin.v1.AdminFormOptionR\aoptions\x12\x12\n" +
 	"\x04rows\x18\v \x01(\x05R\x04rows\x12'\n" +
-	"\x0fdynamic_options\x18\f \x01(\bR\x0edynamicOptions\x12?\n" +
-	"\tshow_when\x18\r \x03(\v2\".prairie.plugin.v1.AdminFormConditionR\bshowWhen\x12C\n" +
+	"\x0fdynamic_options\x18\f \x01(\bR\x0edynamicOptions\x12B\n" +
+	"\tshow_when\x18\r \x03(\v2%.prairie.plugin.v1.AdminFormConditionR\bshowWhen\x12F\n" +
 	"\n" +
-	"validation\x18\x0e \x01(\v2#.prairie.plugin.v1.AdminFormValidationR\n" +
+	"validation\x18\x0e \x01(\v2&.prairie.plugin.v1.AdminFormValidationR\n" +
 	"validation\x122\n" +
 	"\x15exclusive_group_field\x18\x0f \x01(\tR\x13exclusiveGroupField\"B\n" +
 	"\x12AdminFormCondition\x12\x14\n" +
@@ -1672,7 +1672,7 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"min_length\x18\x06 \x01(\x05R\tminLength\x12\x1d\n" +
 	"\n" +
-	"max_length\x18\a \x01(\x05R\tmaxLength\"\x8b\x02\n" +
+	"max_length\x18\a \x01(\x05R\tmaxLength\"\x8e\x02\n" +
 	"\x10AdminFormSection\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
@@ -1680,12 +1680,12 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\vcollapsible\x18\x04 \x01(\bR\vcollapsible\x12+\n" +
 	"\x11collapsed_default\x18\x05 \x01(\bR\x10collapsedDefault\x12\x1d\n" +
 	"\n" +
-	"field_keys\x18\x06 \x03(\tR\tfieldKeys\x12?\n" +
-	"\tshow_when\x18\a \x03(\v2\".prairie.plugin.v1.AdminFormConditionR\bshowWhen\"\xae\x01\n" +
-	"\x13AdminFormDescriptor\x126\n" +
-	"\x06fields\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.AdminFormFieldR\x06fields\x12!\n" +
-	"\fsubmit_label\x18\x02 \x01(\tR\vsubmitLabel\x12<\n" +
-	"\bsections\x18\x03 \x03(\v2 .prairie.plugin.v1.AdminFormSectionR\bsections\"N\n" +
+	"field_keys\x18\x06 \x03(\tR\tfieldKeys\x12B\n" +
+	"\tshow_when\x18\a \x03(\v2%.prairie.plugin.v1.AdminFormConditionR\bshowWhen\"\xb4\x01\n" +
+	"\x13AdminFormDescriptor\x129\n" +
+	"\x06fields\x18\x01 \x03(\v2!.prairie.plugin.v1.AdminFormFieldR\x06fields\x12!\n" +
+	"\fsubmit_label\x18\x02 \x01(\tR\vsubmitLabel\x12?\n" +
+	"\bsections\x18\x03 \x03(\v2#.prairie.plugin.v1.AdminFormSectionR\bsections\"N\n" +
 	"\vConfigEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
 	"\x05value\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x05value\"\xfe\x01\n" +
@@ -1701,22 +1701,22 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\rPackagedAsset\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12!\n" +
 	"\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x1c\n" +
-	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\xed\x04\n" +
+	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\xf9\x04\n" +
 	"\x14CapabilityDescriptor\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12$\n" +
-	"\rsubscriptions\x18\x05 \x03(\tR\rsubscriptions\x12A\n" +
-	"\rconfig_schema\x18\x06 \x03(\v2\x1c.prairie.plugin.v1.ConfigSchemaR\fconfigSchema\x123\n" +
+	"\rsubscriptions\x18\x05 \x03(\tR\rsubscriptions\x12D\n" +
+	"\rconfig_schema\x18\x06 \x03(\v2\x1f.prairie.plugin.v1.ConfigSchemaR\fconfigSchema\x123\n" +
 	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1d\n" +
 	"\n" +
 	"auth_modes\x18\b \x03(\tR\tauthModes\x12\x19\n" +
-	"\bicon_url\x18\t \x01(\tR\aiconUrl\x12[\n" +
+	"\bicon_url\x18\t \x01(\tR\aiconUrl\x12^\n" +
 	"\x13watch_sync_provider\x18\n" +
-	" \x01(\v2+.prairie.plugin.v1.WatchSyncProviderDescriptorR\x11watchSyncProvider\x12g\n" +
-	"\x17network_access_provider\x18\v \x01(\v2/.prairie.plugin.v1.NetworkAccessProviderDescriptorR\x15networkAccessProvider\x12N\n" +
-	"\x0erequest_router\x18\f \x01(\v2'.prairie.plugin.v1.RequestRouterDescriptorR\rrequestRouter\"\xa2\x03\n" +
+	" \x01(\v2..prairie.plugin.v1.WatchSyncProviderDescriptorR\x11watchSyncProvider\x12j\n" +
+	"\x17network_access_provider\x18\v \x01(\v22.prairie.plugin.v1.NetworkAccessProviderDescriptorR\x15networkAccessProvider\x12Q\n" +
+	"\x0erequest_router\x18\f \x01(\v2*.prairie.plugin.v1.RequestRouterDescriptorR\rrequestRouter\"\xa2\x03\n" +
 	"\x12PluginPresentation\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x18\n" +
 	"\asummary\x18\x02 \x01(\tR\asummary\x121\n" +
@@ -1731,28 +1731,28 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\x0epublisher_name\x18\t \x01(\tR\rpublisherName\x12#\n" +
 	"\rpublisher_url\x18\n" +
 	" \x01(\tR\fpublisherUrl\x12!\n" +
-	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\xdd\x05\n" +
+	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\xf8\x05\n" +
 	"\x0ePluginManifest\x12\x1b\n" +
 	"\tplugin_id\x18\x01 \x01(\tR\bpluginId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x1a\n" +
-	"\bchecksum\x18\x03 \x01(\tR\bchecksum\x12(\n" +
-	"\x10prairie_api_version\x18\x04 \x01(\tR\x0eprairieApiVersion\x12R\n" +
-	"\x13supported_platforms\x18\x05 \x03(\v2!.prairie.plugin.v1.SupportedPlatformR\x12supportedPlatforms\x12H\n" +
-	"\fcapabilities\x18\x06 \x03(\v2$.prairie.plugin.v1.CapabilityDescriptorR\fcapabilities\x12N\n" +
-	"\x14global_config_schema\x18\a \x03(\v2\x1c.prairie.plugin.v1.ConfigSchemaR\x12globalConfigSchema\x12J\n" +
-	"\x12user_config_schema\x18\b \x03(\v2\x1c.prairie.plugin.v1.ConfigSchemaR\x10userConfigSchema\x12D\n" +
-	"\vhttp_routes\x18\t \x03(\v2#.prairie.plugin.v1.HttpRouteDescriptorR\n" +
-	"httpRoutes\x125\n" +
+	"\bchecksum\x18\x03 \x01(\tR\bchecksum\x12.\n" +
+	"\x13prairie_api_version\x18\x04 \x01(\tR\x11prairieApiVersion\x12U\n" +
+	"\x13supported_platforms\x18\x05 \x03(\v2$.prairie.plugin.v1.SupportedPlatformR\x12supportedPlatforms\x12K\n" +
+	"\fcapabilities\x18\x06 \x03(\v2'.prairie.plugin.v1.CapabilityDescriptorR\fcapabilities\x12Q\n" +
+	"\x14global_config_schema\x18\a \x03(\v2\x1f.prairie.plugin.v1.ConfigSchemaR\x12globalConfigSchema\x12M\n" +
+	"\x12user_config_schema\x18\b \x03(\v2\x1f.prairie.plugin.v1.ConfigSchemaR\x10userConfigSchema\x12G\n" +
+	"\vhttp_routes\x18\t \x03(\v2&.prairie.plugin.v1.HttpRouteDescriptorR\n" +
+	"httpRoutes\x128\n" +
 	"\x06assets\x18\n" +
-	" \x03(\v2\x1d.prairie.plugin.v1.PackagedAssetR\x06assets\x123\n" +
+	" \x03(\v2 .prairie.plugin.v1.PackagedAssetR\x06assets\x123\n" +
 	"\bmetadata\x18\v \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1a\n" +
-	"\bcategory\x18\f \x01(\tR\bcategory\x12F\n" +
-	"\fpresentation\x18\r \x01(\v2\".prairie.plugin.v1.PluginPresentationR\fpresentation\"\x14\n" +
-	"\x12GetManifestRequest\"Q\n" +
-	"\x13GetManifestResponse\x12:\n" +
-	"\bmanifest\x18\x01 \x01(\v2\x1e.prairie.plugin.v1.PluginManifestR\bmanifest\"G\n" +
-	"\x10ConfigureRequest\x123\n" +
-	"\x06config\x18\x01 \x03(\v2\x1b.prairie.plugin.v1.ConfigEntryR\x06config\"\x13\n" +
+	"\bcategory\x18\f \x01(\tR\bcategory\x12I\n" +
+	"\fpresentation\x18\r \x01(\v2%.prairie.plugin.v1.PluginPresentationR\fpresentation\"\x14\n" +
+	"\x12GetManifestRequest\"T\n" +
+	"\x13GetManifestResponse\x12=\n" +
+	"\bmanifest\x18\x01 \x01(\v2!.prairie.plugin.v1.PluginManifestR\bmanifest\"J\n" +
+	"\x10ConfigureRequest\x126\n" +
+	"\x06config\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.ConfigEntryR\x06config\"\x13\n" +
 	"\x11ConfigureResponse\"4\n" +
 	"\x15BindHostBrokerRequest\x12\x1b\n" +
 	"\tbroker_id\x18\x01 \x01(\rR\bbrokerId\"\x18\n" +
@@ -1765,11 +1765,11 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\x19ADMIN_FORM_CONTROL_NUMBER\x10\x04\x12\x1d\n" +
 	"\x19ADMIN_FORM_CONTROL_SWITCH\x10\x05\x12\x1d\n" +
 	"\x19ADMIN_FORM_CONTROL_SELECT\x10\x06\x12#\n" +
-	"\x1fADMIN_FORM_CONTROL_MULTI_SELECT\x10\a2\x94\x02\n" +
-	"\aRuntime\x12V\n" +
-	"\vGetManifest\x12\".prairie.plugin.v1.GetManifestRequest\x1a#.prairie.plugin.v1.GetManifestResponse\x12P\n" +
-	"\tConfigure\x12 .prairie.plugin.v1.ConfigureRequest\x1a!.prairie.plugin.v1.ConfigureResponse\x12_\n" +
-	"\x0eBindHostBroker\x12%.prairie.plugin.v1.BindHostBrokerRequest\x1a&.prairie.plugin.v1.BindHostBrokerResponseBPZNgithub.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"\x1fADMIN_FORM_CONTROL_MULTI_SELECT\x10\a2\xa6\x02\n" +
+	"\aRuntime\x12\\\n" +
+	"\vGetManifest\x12%.prairie.plugin.v1.GetManifestRequest\x1a&.prairie.plugin.v1.GetManifestResponse\x12V\n" +
+	"\tConfigure\x12#.prairie.plugin.v1.ConfigureRequest\x1a$.prairie.plugin.v1.ConfigureResponse\x12e\n" +
+	"\x0eBindHostBroker\x12(.prairie.plugin.v1.BindHostBrokerRequest\x1a).prairie.plugin.v1.BindHostBrokerResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_common_proto_rawDescOnce sync.Once

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	"github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
 )
 
 func authManifest(capabilityJSON string) []byte {
@@ -13,7 +13,7 @@ func authManifest(capabilityJSON string) []byte {
 		"plugin_id": "test.auth",
 		"version": "0.1.0",
 		"checksum": "0",
-		"silo_api_version": "v1",
+		"prairie_api_version": "v1",
 		"capabilities": [` + capabilityJSON + `]
 	}`)
 }
