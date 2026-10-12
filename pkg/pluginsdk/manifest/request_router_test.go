@@ -102,7 +102,7 @@ func TestValidateRequestRouterRejectsDescriptorOnOtherType(t *testing.T) {
 
 func TestLoadRequestRouterDeclaresWording(t *testing.T) {
 	raw := []byte(`{
-	  "plugin_id":"silo.requests-seerr", "version":"1.0.0", "silo_api_version":"v1",
+	  "plugin_id":"prairie.requests-seerr", "version":"1.0.0", "prairie_api_version":"v1",
 	  "capabilities":[{
 	    "type":"request_router.v1", "id":"seerr", "display_name":"Seerr",
 	    "request_router":{"wording":{
@@ -142,7 +142,7 @@ func TestValidateRequestRouterWordingRejectsUnfitValues(t *testing.T) {
 		"trailing space step": {Step: "Processing "},
 	} {
 		manifest := &pluginv1.PluginManifest{
-			PluginId: "silo.requests-seerr", Version: "1.0.0",
+			PluginId: "prairie.requests-seerr", Version: "1.0.0",
 			Capabilities: []*pluginv1.CapabilityDescriptor{{
 				Type: "request_router.v1", Id: "seerr",
 				RequestRouter: &pluginv1.RequestRouterDescriptor{Wording: wording},

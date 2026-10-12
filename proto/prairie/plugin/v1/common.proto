@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package prairie.plugin.v1;
 
-option go_package = "github.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1";
+option go_package = "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1";
 
 import "google/protobuf/struct.proto";
 import "prairie/plugin/v1/network_access_provider.proto";

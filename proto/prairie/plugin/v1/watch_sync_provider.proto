@@ -150,7 +150,7 @@ message WatchSyncProviderDescriptor {
   // Media types whose SET_RATING also records the title as watched on the
   // provider. The host sends a new rating for these types only after the
   // profile has a completed play of the title, so rating an unwatched title in
-  // Silo does not mark it watched upstream. Each entry must also be listed in
+  // Prairie does not mark it watched upstream. Each entry must also be listed in
   // supported_media_types, and export_ratings must be set.
   repeated WatchSyncMediaType rating_export_requires_watched = 20;
   // Settings a profile can change on its connection at any time, such as

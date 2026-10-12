@@ -1,4 +1,4 @@
-// Command hello-scan-source is a minimal scan_source.v1 plugin for Silo
+// Command hello-scan-source is a minimal scan_source.v1 plugin for Prairie
 // Autoscan. Another tool appends changed paths to a change-log file, one per
 // line; each poll returns the lines added since the previous poll.
 //
@@ -23,9 +23,9 @@ import (
 	"strconv"
 	"strings"
 
-	pluginv1 "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginproto/silo/plugin/v1"
-	publicmanifest "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/manifest"
-	sdkruntime "github.com/Silo-Server/silo-plugin-sdk/pkg/pluginsdk/runtime"
+	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
+	publicmanifest "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
+	sdkruntime "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/runtime"
 )
 
 //go:embed manifest.json

@@ -251,9 +251,9 @@ var AuthProvider_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	AuthProviderChecks_TestConnection_FullMethodName = "/silo.plugin.v1.AuthProviderChecks/TestConnection"
-	AuthProviderChecks_CheckAccount_FullMethodName   = "/silo.plugin.v1.AuthProviderChecks/CheckAccount"
-	AuthProviderChecks_EndSessionUrl_FullMethodName  = "/silo.plugin.v1.AuthProviderChecks/EndSessionUrl"
+	AuthProviderChecks_TestConnection_FullMethodName = "/prairie.plugin.v1.AuthProviderChecks/TestConnection"
+	AuthProviderChecks_CheckAccount_FullMethodName   = "/prairie.plugin.v1.AuthProviderChecks/CheckAccount"
+	AuthProviderChecks_EndSessionUrl_FullMethodName  = "/prairie.plugin.v1.AuthProviderChecks/EndSessionUrl"
 )
 
 // AuthProviderChecksClient is the client API for AuthProviderChecks service.
@@ -290,7 +290,7 @@ type AuthProviderChecksClient interface {
 	CheckAccount(ctx context.Context, in *CheckAccountRequest, opts ...grpc.CallOption) (*CheckAccountResponse, error)
 	// EndSessionUrl returns the provider logout URL the host sends the browser
 	// to on web sign-out, such as an OIDC end_session_endpoint with
-	// id_token_hint. The host ends the Silo session whatever the answer.
+	// id_token_hint. The host ends the Prairie session whatever the answer.
 	EndSessionUrl(ctx context.Context, in *AuthEndSessionUrlRequest, opts ...grpc.CallOption) (*AuthEndSessionUrlResponse, error)
 }
 
@@ -366,7 +366,7 @@ type AuthProviderChecksServer interface {
 	CheckAccount(context.Context, *CheckAccountRequest) (*CheckAccountResponse, error)
 	// EndSessionUrl returns the provider logout URL the host sends the browser
 	// to on web sign-out, such as an OIDC end_session_endpoint with
-	// id_token_hint. The host ends the Silo session whatever the answer.
+	// id_token_hint. The host ends the Prairie session whatever the answer.
 	EndSessionUrl(context.Context, *AuthEndSessionUrlRequest) (*AuthEndSessionUrlResponse, error)
 }
 
@@ -464,7 +464,7 @@ func _AuthProviderChecks_EndSessionUrl_Handler(srv interface{}, ctx context.Cont
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthProviderChecks_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "silo.plugin.v1.AuthProviderChecks",
+	ServiceName: "prairie.plugin.v1.AuthProviderChecks",
 	HandlerType: (*AuthProviderChecksServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -481,11 +481,11 @@ var AuthProviderChecks_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "silo/plugin/v1/auth_provider.proto",
+	Metadata: "prairie/plugin/v1/auth_provider.proto",
 }
 
 const (
-	NetworkIdentityAuth_AuthenticatePeer_FullMethodName = "/silo.plugin.v1.NetworkIdentityAuth/AuthenticatePeer"
+	NetworkIdentityAuth_AuthenticatePeer_FullMethodName = "/prairie.plugin.v1.NetworkIdentityAuth/AuthenticatePeer"
 )
 
 // NetworkIdentityAuthClient is the client API for NetworkIdentityAuth service.
@@ -509,7 +509,7 @@ const (
 type NetworkIdentityAuthClient interface {
 	// AuthenticatePeer identifies the overlay peer of a request this plugin
 	// proxied. The host calls it only for a request that carried the ingress
-	// token it issued to this plugin installation and an X-Silo-Ingress-Peer
+	// token it issued to this plugin installation and an X-Prairie-Ingress-Peer
 	// value, and passes that value here. The answer has the same shape and
 	// denials as Authenticate: NOT_PERMITTED for a peer the plugin will not
 	// vouch for (unknown, tagged or refused by policy) and PROVIDER_UNAVAILABLE
@@ -556,7 +556,7 @@ func (c *networkIdentityAuthClient) AuthenticatePeer(ctx context.Context, in *Au
 type NetworkIdentityAuthServer interface {
 	// AuthenticatePeer identifies the overlay peer of a request this plugin
 	// proxied. The host calls it only for a request that carried the ingress
-	// token it issued to this plugin installation and an X-Silo-Ingress-Peer
+	// token it issued to this plugin installation and an X-Prairie-Ingress-Peer
 	// value, and passes that value here. The answer has the same shape and
 	// denials as Authenticate: NOT_PERMITTED for a peer the plugin will not
 	// vouch for (unknown, tagged or refused by policy) and PROVIDER_UNAVAILABLE
@@ -616,7 +616,7 @@ func _NetworkIdentityAuth_AuthenticatePeer_Handler(srv interface{}, ctx context.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var NetworkIdentityAuth_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "silo.plugin.v1.NetworkIdentityAuth",
+	ServiceName: "prairie.plugin.v1.NetworkIdentityAuth",
 	HandlerType: (*NetworkIdentityAuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -625,5 +625,5 @@ var NetworkIdentityAuth_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "silo/plugin/v1/auth_provider.proto",
+	Metadata: "prairie/plugin/v1/auth_provider.proto",
 }

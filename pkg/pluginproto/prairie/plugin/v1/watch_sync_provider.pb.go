@@ -3053,14 +3053,14 @@ var File_prairie_plugin_v1_watch_sync_provider_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\n" +
-	"(prairie/plugin/v1/watch_sync_provider.proto\x12\x0eprairie.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdb\b\n" +
-	"\x1bWatchSyncProviderDescriptor\x12F\n" +
-	"\fauth_methods\x18\x01 \x03(\x0e2#.prairie.plugin.v1.WatchSyncAuthMethodR\vauthMethods\x12%\n" +
+	"+prairie/plugin/v1/watch_sync_provider.proto\x12\x11prairie.plugin.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe7\b\n" +
+	"\x1bWatchSyncProviderDescriptor\x12I\n" +
+	"\fauth_methods\x18\x01 \x03(\x0e2&.prairie.plugin.v1.WatchSyncAuthMethodR\vauthMethods\x12%\n" +
 	"\x0eexport_watched\x18\x02 \x01(\bR\rexportWatched\x12)\n" +
 	"\x10export_unwatched\x18\x03 \x01(\bR\x0fexportUnwatched\x12%\n" +
 	"\x0eimport_watched\x18\x04 \x01(\bR\rimportWatched\x12'\n" +
-	"\x0fimport_progress\x18\x05 \x01(\bR\x0eimportProgress\x12V\n" +
-	"\x15supported_media_types\x18\x06 \x03(\x0e2\".prairie.plugin.v1.WatchSyncMediaTypeR\x13supportedMediaTypes\x124\n" +
+	"\x0fimport_progress\x18\x05 \x01(\bR\x0eimportProgress\x12Y\n" +
+	"\x15supported_media_types\x18\x06 \x03(\x0e2%.prairie.plugin.v1.WatchSyncMediaTypeR\x13supportedMediaTypes\x124\n" +
 	"\x16external_id_namespaces\x18\a \x03(\tR\x14externalIdNamespaces\x12$\n" +
 	"\x0emax_batch_size\x18\b \x01(\x05R\fmaxBatchSize\x12)\n" +
 	"\x10import_favorites\x18\t \x01(\bR\x0fimportFavorites\x12)\n" +
@@ -3074,24 +3074,24 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x11scrobble_playback\x18\x10 \x01(\bR\x10scrobblePlayback\x12%\n" +
 	"\x0eimport_ratings\x18\x11 \x01(\bR\rimportRatings\x12%\n" +
 	"\x0eexport_ratings\x18\x12 \x01(\bR\rexportRatings\x12!\n" +
-	"\fsync_dropped\x18\x13 \x01(\bR\vsyncDropped\x12g\n" +
-	"\x1erating_export_requires_watched\x18\x14 \x03(\x0e2\".prairie.plugin.v1.WatchSyncMediaTypeR\x1bratingExportRequiresWatched\x12[\n" +
-	"\x13connection_settings\x18\x15 \x03(\v2*.prairie.plugin.v1.WatchSyncConnectionSettingR\x12connectionSettings\"\xe7\x01\n" +
+	"\fsync_dropped\x18\x13 \x01(\bR\vsyncDropped\x12j\n" +
+	"\x1erating_export_requires_watched\x18\x14 \x03(\x0e2%.prairie.plugin.v1.WatchSyncMediaTypeR\x1bratingExportRequiresWatched\x12^\n" +
+	"\x13connection_settings\x18\x15 \x03(\v2-.prairie.plugin.v1.WatchSyncConnectionSettingR\x12connectionSettings\"\xea\x01\n" +
 	"\x1aWatchSyncConnectionSetting\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12B\n" +
-	"\x04type\x18\x04 \x01(\x0e2..prairie.plugin.v1.WatchSyncConnectionSettingTypeR\x04type\x12;\n" +
-	"\rdefault_value\x18\x05 \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\"\xc2\x02\n" +
-	"\x17WatchSyncProviderConfig\x12K\n" +
-	"\x06values\x18\x01 \x03(\v23.prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntryR\x06values\x12^\n" +
-	"\rsecret_values\x18\x02 \x03(\v29.prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntryR\fsecretValues\x1a9\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12E\n" +
+	"\x04type\x18\x04 \x01(\x0e21.prairie.plugin.v1.WatchSyncConnectionSettingTypeR\x04type\x12;\n" +
+	"\rdefault_value\x18\x05 \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\"\xc8\x02\n" +
+	"\x17WatchSyncProviderConfig\x12N\n" +
+	"\x06values\x18\x01 \x03(\v26.prairie.plugin.v1.WatchSyncProviderConfig.ValuesEntryR\x06values\x12a\n" +
+	"\rsecret_values\x18\x02 \x03(\v2<.prairie.plugin.v1.WatchSyncProviderConfig.SecretValuesEntryR\fsecretValues\x1a9\n" +
 	"\vValuesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a?\n" +
 	"\x11SecretValuesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfe\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x81\x03\n" +
 	"\x14WatchSyncCredentials\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x129\n" +
@@ -3099,16 +3099,16 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x1d\n" +
 	"\n" +
 	"token_type\x18\x04 \x01(\tR\ttokenType\x12\x16\n" +
-	"\x06scopes\x18\x05 \x03(\tR\x06scopes\x12g\n" +
-	"\x11secret_attributes\x18\x06 \x03(\v2:.prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntryR\x10secretAttributes\x1aC\n" +
+	"\x06scopes\x18\x05 \x03(\tR\x06scopes\x12j\n" +
+	"\x11secret_attributes\x18\x06 \x03(\v2=.prairie.plugin.v1.WatchSyncCredentials.SecretAttributesEntryR\x10secretAttributes\x1aC\n" +
 	"\x15SecretAttributesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9d\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa6\x03\n" +
 	"\x1dWatchSyncAuthenticatedContext\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12F\n" +
-	"\vcredentials\x18\x03 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12v\n" +
-	"\x13connection_settings\x18\x04 \x03(\v2E.prairie.plugin.v1.WatchSyncAuthenticatedContext.ConnectionSettingsEntryR\x12connectionSettings\x1aE\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12I\n" +
+	"\vcredentials\x18\x03 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12y\n" +
+	"\x13connection_settings\x18\x04 \x03(\v2H.prairie.plugin.v1.WatchSyncAuthenticatedContext.ConnectionSettingsEntryR\x12connectionSettings\x1aE\n" +
 	"\x17ConnectionSettingsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbc\x01\n" +
@@ -3119,34 +3119,34 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\n" +
 	"avatar_url\x18\x04 \x01(\tR\tavatarUrl\x12\x1f\n" +
 	"\vprofile_url\x18\x05 \x01(\tR\n" +
-	"profileUrl\"\xa7\x01\n" +
-	"\x0eWatchSyncFault\x126\n" +
-	"\x04code\x18\x01 \x01(\x0e2\".prairie.plugin.v1.WatchSyncFaultCodeR\x04code\x12!\n" +
+	"profileUrl\"\xaa\x01\n" +
+	"\x0eWatchSyncFault\x129\n" +
+	"\x04code\x18\x01 \x01(\x0e2%.prairie.plugin.v1.WatchSyncFaultCodeR\x04code\x12!\n" +
 	"\fsafe_message\x18\x02 \x01(\tR\vsafeMessage\x12:\n" +
 	"\vretry_after\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\n" +
-	"retryAfter\"\xcf\x01\n" +
+	"retryAfter\"\xd2\x01\n" +
 	"\x1dWatchSyncInitAuthorizeRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
 	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12\x14\n" +
-	"\x05state\x18\x04 \x01(\tR\x05state\"\xaa\x01\n" +
+	"\x05state\x18\x04 \x01(\tR\x05state\"\xad\x01\n" +
 	"\x1eWatchSyncInitAuthorizeResponse\x12+\n" +
 	"\x11authorization_url\x18\x01 \x01(\tR\x10authorizationUrl\x12%\n" +
-	"\x0eprovider_state\x18\x02 \x01(\fR\rproviderState\x124\n" +
-	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x8e\x02\n" +
+	"\x0eprovider_state\x18\x02 \x01(\fR\rproviderState\x127\n" +
+	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x91\x02\n" +
 	"\x1cWatchSyncExchangeCodeRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12!\n" +
 	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12-\n" +
 	"\x12authorization_code\x18\x04 \x01(\tR\x11authorizationCode\x12%\n" +
-	"\x0eprovider_state\x18\x05 \x01(\fR\rproviderState\"\xb0\x01\n" +
+	"\x0eprovider_state\x18\x05 \x01(\fR\rproviderState\"\xb3\x01\n" +
 	"\x1eWatchSyncExchangeAPIKeyRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12\x17\n" +
-	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\"\xa8\x01\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12\x17\n" +
+	"\aapi_key\x18\x03 \x01(\tR\x06apiKey\"\xab\x01\n" +
 	"/WatchSyncDeviceAuthorizationServiceStartRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\"\x94\x03\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\"\x97\x03\n" +
 	"0WatchSyncDeviceAuthorizationServiceStartResponse\x12\x1b\n" +
 	"\tuser_code\x18\x01 \x01(\tR\buserCode\x12)\n" +
 	"\x10verification_url\x18\x02 \x01(\tR\x0fverificationUrl\x12:\n" +
@@ -3154,47 +3154,47 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x0eprovider_state\x18\x04 \x01(\fR\rproviderState\x12D\n" +
 	"\x10polling_interval\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\x0fpollingInterval\x129\n" +
 	"\n" +
-	"expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x124\n" +
-	"\x05fault\x18\a \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xce\x01\n" +
+	"expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x127\n" +
+	"\x05fault\x18\a \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xd1\x01\n" +
 	".WatchSyncDeviceAuthorizationServicePollRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12P\n" +
-	"\x0fprovider_config\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12%\n" +
-	"\x0eprovider_state\x18\x03 \x01(\fR\rproviderState\"\xf7\x03\n" +
-	"/WatchSyncDeviceAuthorizationServicePollResponse\x12J\n" +
-	"\x06status\x18\x01 \x01(\x0e22.prairie.plugin.v1.WatchSyncDeviceAuthorizationStatusR\x06status\x12F\n" +
-	"\vcredentials\x18\x02 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12:\n" +
-	"\aaccount\x18\x03 \x01(\v2 .prairie.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
-	"\x05fault\x18\x04 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\x12*\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12S\n" +
+	"\x0fprovider_config\x18\x02 \x01(\v2*.prairie.plugin.v1.WatchSyncProviderConfigR\x0eproviderConfig\x12%\n" +
+	"\x0eprovider_state\x18\x03 \x01(\fR\rproviderState\"\x83\x04\n" +
+	"/WatchSyncDeviceAuthorizationServicePollResponse\x12M\n" +
+	"\x06status\x18\x01 \x01(\x0e25.prairie.plugin.v1.WatchSyncDeviceAuthorizationStatusR\x06status\x12I\n" +
+	"\vcredentials\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12=\n" +
+	"\aaccount\x18\x03 \x01(\v2#.prairie.plugin.v1.WatchSyncAccountR\aaccount\x127\n" +
+	"\x05fault\x18\x04 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\x12*\n" +
 	"\x0eprovider_state\x18\x05 \x01(\fH\x00R\rproviderState\x88\x01\x01\x12D\n" +
 	"\x10polling_interval\x18\x06 \x01(\v2\x19.google.protobuf.DurationR\x0fpollingInterval\x129\n" +
 	"\n" +
 	"expires_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAtB\x11\n" +
-	"\x0f_provider_state\"m\n" +
-	"\"WatchSyncRefreshCredentialsRequest\x12G\n" +
-	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\xd7\x01\n" +
-	"\x1bWatchSyncCredentialResponse\x12F\n" +
-	"\vcredentials\x18\x01 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12:\n" +
-	"\aaccount\x18\x02 \x01(\v2 .prairie.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
-	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"e\n" +
-	"\x1aWatchSyncGetAccountRequest\x12G\n" +
-	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\x8f\x01\n" +
-	"\x1bWatchSyncGetAccountResponse\x12:\n" +
-	"\aaccount\x18\x01 \x01(\v2 .prairie.plugin.v1.WatchSyncAccountR\aaccount\x124\n" +
-	"\x05fault\x18\x02 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xe9\x06\n" +
+	"\x0f_provider_state\"p\n" +
+	"\"WatchSyncRefreshCredentialsRequest\x12J\n" +
+	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\xe0\x01\n" +
+	"\x1bWatchSyncCredentialResponse\x12I\n" +
+	"\vcredentials\x18\x01 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\vcredentials\x12=\n" +
+	"\aaccount\x18\x02 \x01(\v2#.prairie.plugin.v1.WatchSyncAccountR\aaccount\x127\n" +
+	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"h\n" +
+	"\x1aWatchSyncGetAccountRequest\x12J\n" +
+	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\"\x95\x01\n" +
+	"\x1bWatchSyncGetAccountResponse\x12=\n" +
+	"\aaccount\x18\x01 \x01(\v2#.prairie.plugin.v1.WatchSyncAccountR\aaccount\x127\n" +
+	"\x05fault\x18\x02 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xf2\x06\n" +
 	"\x0eWatchSyncMedia\x12\"\n" +
-	"\rmedia_item_id\x18\x01 \x01(\tR\vmediaItemId\x12A\n" +
+	"\rmedia_item_id\x18\x01 \x01(\tR\vmediaItemId\x12D\n" +
 	"\n" +
-	"media_type\x18\x02 \x01(\x0e2\".prairie.plugin.v1.WatchSyncMediaTypeR\tmediaType\x12\x14\n" +
+	"media_type\x18\x02 \x01(\x0e2%.prairie.plugin.v1.WatchSyncMediaTypeR\tmediaType\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12%\n" +
 	"\x0eoriginal_title\x18\x04 \x01(\tR\roriginalTitle\x12\x12\n" +
-	"\x04year\x18\x05 \x01(\x05R\x04year\x12R\n" +
-	"\fexternal_ids\x18\x06 \x03(\v2/.prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntryR\vexternalIds\x12/\n" +
+	"\x04year\x18\x05 \x01(\x05R\x04year\x12U\n" +
+	"\fexternal_ids\x18\x06 \x03(\v22.prairie.plugin.v1.WatchSyncMedia.ExternalIdsEntryR\vexternalIds\x12/\n" +
 	"\x14series_media_item_id\x18\a \x01(\tR\x11seriesMediaItemId\x12!\n" +
 	"\fseries_title\x18\b \x01(\tR\vseriesTitle\x12\x1f\n" +
 	"\vseries_year\x18\t \x01(\x05R\n" +
-	"seriesYear\x12e\n" +
+	"seriesYear\x12h\n" +
 	"\x13series_external_ids\x18\n" +
-	" \x03(\v25.prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntryR\x11seriesExternalIds\x12#\n" +
+	" \x03(\v28.prairie.plugin.v1.WatchSyncMedia.SeriesExternalIdsEntryR\x11seriesExternalIds\x12#\n" +
 	"\rseason_number\x18\v \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\f \x01(\x05R\repisodeNumber\x126\n" +
 	"\x17absolute_episode_number\x18\r \x01(\x05R\x15absoluteEpisodeNumber\x120\n" +
@@ -3205,14 +3205,14 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1aD\n" +
 	"\x16SeriesExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xb5\x05\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xbe\x05\n" +
 	"\x0eWatchSyncEvent\x12\x19\n" +
-	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12@\n" +
-	"\toperation\x18\x02 \x01(\x0e2\".prairie.plugin.v1.WatchSyncOperationR\toperation\x127\n" +
-	"\x06origin\x18\x03 \x01(\x0e2\x1f.prairie.plugin.v1.WatchSyncOriginR\x06origin\x12;\n" +
+	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12C\n" +
+	"\toperation\x18\x02 \x01(\x0e2%.prairie.plugin.v1.WatchSyncOperationR\toperation\x12:\n" +
+	"\x06origin\x18\x03 \x01(\x0e2\".prairie.plugin.v1.WatchSyncOriginR\x06origin\x12;\n" +
 	"\voccurred_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
-	"occurredAt\x124\n" +
-	"\x05media\x18\x05 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncMediaR\x05media\x12(\n" +
+	"occurredAt\x127\n" +
+	"\x05media\x18\x05 \x01(\v2!.prairie.plugin.v1.WatchSyncMediaR\x05media\x12(\n" +
 	"\x10watch_history_id\x18\x06 \x01(\tR\x0ewatchHistoryId\x12.\n" +
 	"\x13playback_session_id\x18\a \x01(\tR\x11playbackSessionId\x12)\n" +
 	"\x10position_seconds\x18\b \x01(\x01R\x0fpositionSeconds\x12)\n" +
@@ -3225,25 +3225,25 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x11provider_item_key\x18\r \x01(\tR\x0fproviderItemKey\x12\x1c\n" +
 	"\tcompleted\x18\x0e \x01(\bR\tcompleted\x12\x16\n" +
 	"\x06rating\x18\x0f \x01(\x05R\x06ratingB\x10\n" +
-	"\x0e_list_position\"\x9e\x01\n" +
-	"\x1bWatchSyncApplyEventsRequest\x12G\n" +
-	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x126\n" +
-	"\x06events\x18\x02 \x03(\v2\x1e.prairie.plugin.v1.WatchSyncEventR\x06events\"\xa5\x01\n" +
+	"\x0e_list_position\"\xa4\x01\n" +
+	"\x1bWatchSyncApplyEventsRequest\x12J\n" +
+	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x129\n" +
+	"\x06events\x18\x02 \x03(\v2!.prairie.plugin.v1.WatchSyncEventR\x06events\"\xab\x01\n" +
 	"\x14WatchSyncApplyResult\x12\x19\n" +
-	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12<\n" +
-	"\x06status\x18\x02 \x01(\x0e2$.prairie.plugin.v1.WatchSyncApplyStatusR\x06status\x124\n" +
-	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xeb\x01\n" +
-	"\x1cWatchSyncApplyEventsResponse\x12>\n" +
-	"\aresults\x18\x01 \x03(\v2$.prairie.plugin.v1.WatchSyncApplyResultR\aresults\x12U\n" +
-	"\x13updated_credentials\x18\x02 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x124\n" +
-	"\x05fault\x18\x03 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x89\x02\n" +
-	"\x1fWatchSyncListRemoteStateRequest\x12G\n" +
-	"\acontext\x18\x01 \x01(\v2-.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x12\x16\n" +
+	"\bevent_id\x18\x01 \x01(\tR\aeventId\x12?\n" +
+	"\x06status\x18\x02 \x01(\x0e2'.prairie.plugin.v1.WatchSyncApplyStatusR\x06status\x127\n" +
+	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\xf4\x01\n" +
+	"\x1cWatchSyncApplyEventsResponse\x12A\n" +
+	"\aresults\x18\x01 \x03(\v2'.prairie.plugin.v1.WatchSyncApplyResultR\aresults\x12X\n" +
+	"\x13updated_credentials\x18\x02 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x127\n" +
+	"\x05fault\x18\x03 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\"\x8f\x02\n" +
+	"\x1fWatchSyncListRemoteStateRequest\x12J\n" +
+	"\acontext\x18\x01 \x01(\v20.prairie.plugin.v1.WatchSyncAuthenticatedContextR\acontext\x12\x16\n" +
 	"\x06cursor\x18\x02 \x01(\tR\x06cursor\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\x12\x1b\n" +
-	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\x12I\n" +
-	"\vstate_kinds\x18\x05 \x03(\x0e2(.prairie.plugin.v1.WatchSyncRemoteStateKindR\n" +
+	"\tpage_size\x18\x04 \x01(\x05R\bpageSize\x12L\n" +
+	"\vstate_kinds\x18\x05 \x03(\x0e2+.prairie.plugin.v1.WatchSyncRemoteStateKindR\n" +
 	"stateKinds\"\x80\x01\n" +
 	"\x1bWatchSyncRemoteWatchedState\x12\x1d\n" +
 	"\n" +
@@ -3258,24 +3258,24 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x1aWatchSyncRemoteRatingState\x12\x16\n" +
 	"\x06rating\x18\x01 \x01(\x05R\x06rating\x125\n" +
 	"\brated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aratedAt\x12\x18\n" +
-	"\aremoved\x18\x03 \x01(\bR\aremoved\"\x9f\x04\n" +
+	"\aremoved\x18\x03 \x01(\bR\aremoved\"\xb4\x04\n" +
 	"\x14WatchSyncRemoteState\x12*\n" +
-	"\x11provider_item_key\x18\x01 \x01(\tR\x0fproviderItemKey\x124\n" +
-	"\x05media\x18\x02 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncMediaR\x05media\x12E\n" +
-	"\awatched\x18\x03 \x01(\v2+.prairie.plugin.v1.WatchSyncRemoteWatchedStateR\awatched\x12H\n" +
-	"\bprogress\x18\x04 \x01(\v2,.prairie.plugin.v1.WatchSyncRemoteProgressStateR\bprogress\x12D\n" +
-	"\bfavorite\x18\x05 \x01(\v2(.prairie.plugin.v1.WatchSyncRemoteListStateR\bfavorite\x12F\n" +
-	"\twatchlist\x18\x06 \x01(\v2(.prairie.plugin.v1.WatchSyncRemoteListStateR\twatchlist\x12B\n" +
-	"\x06rating\x18\a \x01(\v2*.prairie.plugin.v1.WatchSyncRemoteRatingStateR\x06rating\x12B\n" +
-	"\adropped\x18\b \x01(\v2(.prairie.plugin.v1.WatchSyncRemoteListStateR\adropped\"\xfd\x02\n" +
-	" WatchSyncListRemoteStateResponse\x12:\n" +
-	"\x05items\x18\x01 \x03(\v2$.prairie.plugin.v1.WatchSyncRemoteStateR\x05items\x12&\n" +
+	"\x11provider_item_key\x18\x01 \x01(\tR\x0fproviderItemKey\x127\n" +
+	"\x05media\x18\x02 \x01(\v2!.prairie.plugin.v1.WatchSyncMediaR\x05media\x12H\n" +
+	"\awatched\x18\x03 \x01(\v2..prairie.plugin.v1.WatchSyncRemoteWatchedStateR\awatched\x12K\n" +
+	"\bprogress\x18\x04 \x01(\v2/.prairie.plugin.v1.WatchSyncRemoteProgressStateR\bprogress\x12G\n" +
+	"\bfavorite\x18\x05 \x01(\v2+.prairie.plugin.v1.WatchSyncRemoteListStateR\bfavorite\x12I\n" +
+	"\twatchlist\x18\x06 \x01(\v2+.prairie.plugin.v1.WatchSyncRemoteListStateR\twatchlist\x12E\n" +
+	"\x06rating\x18\a \x01(\v2-.prairie.plugin.v1.WatchSyncRemoteRatingStateR\x06rating\x12E\n" +
+	"\adropped\x18\b \x01(\v2+.prairie.plugin.v1.WatchSyncRemoteListStateR\adropped\"\x86\x03\n" +
+	" WatchSyncListRemoteStateResponse\x12=\n" +
+	"\x05items\x18\x01 \x03(\v2'.prairie.plugin.v1.WatchSyncRemoteStateR\x05items\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x1f\n" +
 	"\vnext_cursor\x18\x03 \x01(\tR\n" +
 	"nextCursor\x12+\n" +
-	"\x11complete_snapshot\x18\x04 \x01(\bR\x10completeSnapshot\x12U\n" +
-	"\x13updated_credentials\x18\x05 \x01(\v2$.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x124\n" +
-	"\x05fault\x18\x06 \x01(\v2\x1e.prairie.plugin.v1.WatchSyncFaultR\x05fault\x12\x1a\n" +
+	"\x11complete_snapshot\x18\x04 \x01(\bR\x10completeSnapshot\x12X\n" +
+	"\x13updated_credentials\x18\x05 \x01(\v2'.prairie.plugin.v1.WatchSyncCredentialsR\x12updatedCredentials\x127\n" +
+	"\x05fault\x18\x06 \x01(\v2!.prairie.plugin.v1.WatchSyncFaultR\x05fault\x12\x1a\n" +
 	"\bwarnings\x18\a \x03(\tR\bwarnings*\xb8\x01\n" +
 	"\x13WatchSyncAuthMethod\x12&\n" +
 	"\"WATCH_SYNC_AUTH_METHOD_UNSPECIFIED\x10\x00\x12-\n" +
@@ -3338,19 +3338,19 @@ const file_prairie_plugin_v1_watch_sync_provider_proto_rawDesc = "" +
 	"\x1fWATCH_SYNC_FAULT_CODE_PERMANENT\x10\x06*\x84\x01\n" +
 	"\x1eWatchSyncConnectionSettingType\x122\n" +
 	".WATCH_SYNC_CONNECTION_SETTING_TYPE_UNSPECIFIED\x10\x00\x12.\n" +
-	"*WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN\x10\x012\x9b\x06\n" +
-	"\x11WatchSyncProvider\x12n\n" +
-	"\rInitAuthorize\x12-.prairie.plugin.v1.WatchSyncInitAuthorizeRequest\x1a..prairie.plugin.v1.WatchSyncInitAuthorizeResponse\x12i\n" +
-	"\fExchangeCode\x12,.prairie.plugin.v1.WatchSyncExchangeCodeRequest\x1a+.prairie.plugin.v1.WatchSyncCredentialResponse\x12m\n" +
-	"\x0eExchangeAPIKey\x12..prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest\x1a+.prairie.plugin.v1.WatchSyncCredentialResponse\x12u\n" +
-	"\x12RefreshCredentials\x122.prairie.plugin.v1.WatchSyncRefreshCredentialsRequest\x1a+.prairie.plugin.v1.WatchSyncCredentialResponse\x12e\n" +
+	"*WATCH_SYNC_CONNECTION_SETTING_TYPE_BOOLEAN\x10\x012\xc5\x06\n" +
+	"\x11WatchSyncProvider\x12t\n" +
+	"\rInitAuthorize\x120.prairie.plugin.v1.WatchSyncInitAuthorizeRequest\x1a1.prairie.plugin.v1.WatchSyncInitAuthorizeResponse\x12o\n" +
+	"\fExchangeCode\x12/.prairie.plugin.v1.WatchSyncExchangeCodeRequest\x1a..prairie.plugin.v1.WatchSyncCredentialResponse\x12s\n" +
+	"\x0eExchangeAPIKey\x121.prairie.plugin.v1.WatchSyncExchangeAPIKeyRequest\x1a..prairie.plugin.v1.WatchSyncCredentialResponse\x12{\n" +
+	"\x12RefreshCredentials\x125.prairie.plugin.v1.WatchSyncRefreshCredentialsRequest\x1a..prairie.plugin.v1.WatchSyncCredentialResponse\x12k\n" +
 	"\n" +
-	"GetAccount\x12*.prairie.plugin.v1.WatchSyncGetAccountRequest\x1a+.prairie.plugin.v1.WatchSyncGetAccountResponse\x12h\n" +
-	"\vApplyEvents\x12+.prairie.plugin.v1.WatchSyncApplyEventsRequest\x1a,.prairie.plugin.v1.WatchSyncApplyEventsResponse\x12t\n" +
-	"\x0fListRemoteState\x12/.prairie.plugin.v1.WatchSyncListRemoteStateRequest\x1a0.prairie.plugin.v1.WatchSyncListRemoteStateResponse2\xbc\x02\n" +
-	"#WatchSyncDeviceAuthorizationService\x12\x8a\x01\n" +
-	"\x05Start\x12?.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest\x1a@.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse\x12\x87\x01\n" +
-	"\x04Poll\x12>.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest\x1a?.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponseBPZNgithub.com/Prairie-Server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"GetAccount\x12-.prairie.plugin.v1.WatchSyncGetAccountRequest\x1a..prairie.plugin.v1.WatchSyncGetAccountResponse\x12n\n" +
+	"\vApplyEvents\x12..prairie.plugin.v1.WatchSyncApplyEventsRequest\x1a/.prairie.plugin.v1.WatchSyncApplyEventsResponse\x12z\n" +
+	"\x0fListRemoteState\x122.prairie.plugin.v1.WatchSyncListRemoteStateRequest\x1a3.prairie.plugin.v1.WatchSyncListRemoteStateResponse2\xc8\x02\n" +
+	"#WatchSyncDeviceAuthorizationService\x12\x90\x01\n" +
+	"\x05Start\x12B.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartRequest\x1aC.prairie.plugin.v1.WatchSyncDeviceAuthorizationServiceStartResponse\x12\x8d\x01\n" +
+	"\x04Poll\x12A.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollRequest\x1aB.prairie.plugin.v1.WatchSyncDeviceAuthorizationServicePollResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_watch_sync_provider_proto_rawDescOnce sync.Once

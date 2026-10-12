@@ -2,10 +2,10 @@
   "plugin_id": "example.hello-scan-source",
   "version": "0.1.0",
   "checksum": "__CHECKSUM__",
-  "silo_api_version": "v1",
+  "prairie_api_version": "v1",
   "presentation": {
     "display_name": "Hello Scan Source",
-    "summary": "Example Autoscan source for Silo that reads changed paths from a change-log file.",
+    "summary": "Example Autoscan source for Prairie that reads changed paths from a change-log file.",
     "publisher_name": "Example Publisher",
     "license_spdx": "Apache-2.0"
   },
@@ -25,9 +25,9 @@
               {
                 "key": "changes_file",
                 "label": "Change log file",
-                "description": "Absolute path of the file to read, as the Silo server sees it.",
+                "description": "Absolute path of the file to read, as the Prairie server sees it.",
                 "control": "TEXT",
-                "placeholder": "/data/silo-changes.log",
+                "placeholder": "/data/prairie-changes.log",
                 "required": true
               }
             ]
