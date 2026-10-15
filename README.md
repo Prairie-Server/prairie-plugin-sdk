@@ -233,6 +233,36 @@ last stored. One `DownloadProgress` covers all of a target's downloads:
 `downloading`, so a phase added later still shows as a download in progress on
 hosts that predate it.
 
+### API key and base URL
+
+An admin connects a server to a request router with a base URL and an API key,
+which the plugin receives in `RouterConnection`. By default the host needs
+both: its admin form won't save a server without them, and it never sends a
+request to a connection without a key. A plugin that works without them, for
+example one that talks to a local tool or authenticates some other way,
+declares it in its manifest:
+
+```json
+{
+  "type": "request_router.v1",
+  "id": "local",
+  "request_router": { "api_key_optional": true, "base_url_optional": true }
+}
+```
+
+- `api_key_optional`: the admin form saves and tests a server without a key,
+  and the host sends the plugin connections whose `api_key` is empty.
+- `base_url_optional`: the admin form saves and tests a server without a base
+  URL, and the plugin receives an empty `base_url`.
+
+An admin can still enter a key or URL, and the plugin receives them. Plugins
+without the flags, including every plugin built before they existed, need both.
+A host that predates the flags still skips a connection without a key, and
+refuses to install a bare plugin binary that declares them; see
+[docs/compatibility.md](docs/compatibility.md). The SDK's `httpclient` refuses
+an empty key or base URL, so a plugin that declares either flag needs its own
+client for connections without them.
+
 ### Wording
 
 Silo clients draw a request as four steps: requested, approved, the router's
