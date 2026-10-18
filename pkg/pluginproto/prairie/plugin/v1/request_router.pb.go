@@ -170,9 +170,18 @@ type RequestRouterDescriptor struct {
 	ReportsDownloadProgress bool `protobuf:"varint,2,opt,name=reports_download_progress,json=reportsDownloadProgress,proto3" json:"reports_download_progress,omitempty"`
 	// wording is how clients describe a request while this plugin fulfils it.
 	// Unset, or any field left empty, means the host's own neutral words.
-	Wording       *RequestRouterWording `protobuf:"bytes,3,opt,name=wording,proto3" json:"wording,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Wording *RequestRouterWording `protobuf:"bytes,3,opt,name=wording,proto3" json:"wording,omitempty"`
+	// api_key_optional declares that the plugin works without an API key, for
+	// example because it talks to a local tool or authenticates some other way.
+	// The host then sends it connections whose api_key is empty, and its admin
+	// form saves and tests a server without a key. Hosts skip a connection
+	// without a key when its plugin does not declare this.
+	ApiKeyOptional bool `protobuf:"varint,4,opt,name=api_key_optional,json=apiKeyOptional,proto3" json:"api_key_optional,omitempty"`
+	// base_url_optional declares that the plugin works without a base URL. The
+	// host's admin form then saves and tests a server without one.
+	BaseUrlOptional bool `protobuf:"varint,5,opt,name=base_url_optional,json=baseUrlOptional,proto3" json:"base_url_optional,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RequestRouterDescriptor) Reset() {
@@ -224,6 +233,20 @@ func (x *RequestRouterDescriptor) GetWording() *RequestRouterWording {
 		return x.Wording
 	}
 	return nil
+}
+
+func (x *RequestRouterDescriptor) GetApiKeyOptional() bool {
+	if x != nil {
+		return x.ApiKeyOptional
+	}
+	return false
+}
+
+func (x *RequestRouterDescriptor) GetBaseUrlOptional() bool {
+	if x != nil {
+		return x.BaseUrlOptional
+	}
+	return false
 }
 
 // RequestRouterWording names the part of a request that a request router
@@ -357,10 +380,15 @@ func (x *RequestStatusWording) GetDetail() string {
 }
 
 type RouterConnection struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	Id      string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	BaseUrl string                 `protobuf:"bytes,2,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
-	ApiKey  string                 `protobuf:"bytes,3,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Id    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// base_url is empty when none was saved. The host's admin form allows that
+	// only for a plugin that declares RequestRouterDescriptor.base_url_optional.
+	BaseUrl string `protobuf:"bytes,2,opt,name=base_url,json=baseUrl,proto3" json:"base_url,omitempty"`
+	// api_key is empty when none was saved. The host sends such a connection
+	// to Fulfill, CheckStatus and ListConfigOptions only for a plugin that
+	// declares RequestRouterDescriptor.api_key_optional.
+	ApiKey string `protobuf:"bytes,3,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
 	// plugin-declared config blob (e.g. service_kind, root_folder,
 	// quality_profile_id)
 	Config        *structpb.Struct `protobuf:"bytes,4,opt,name=config,proto3" json:"config,omitempty"`
@@ -1493,13 +1521,13 @@ var File_prairie_plugin_v1_request_router_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"\n" +
-	"&prairie/plugin/v1/request_router.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe1\x03\n" +
+	"#prairie/plugin/v1/request_router.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xde\x03\n" +
 	"\x11RequestDescriptor\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x01 \x01(\tR\tmediaType\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x12\n" +
-	"\x04year\x18\x03 \x01(\x05R\x04year\x12X\n" +
-	"\fexternal_ids\x18\x04 \x03(\v25.prairie.plugin.v1.RequestDescriptor.ExternalIdsEntryR\vexternalIds\x12\x19\n" +
+	"\x04year\x18\x03 \x01(\x05R\x04year\x12U\n" +
+	"\fexternal_ids\x18\x04 \x03(\v22.prairie.plugin.v1.RequestDescriptor.ExternalIdsEntryR\vexternalIds\x12\x19\n" +
 	"\bis_anime\x18\x05 \x01(\bR\aisAnime\x12*\n" +
 	"\x11requester_user_id\x18\x06 \x01(\x03R\x0frequesterUserId\x120\n" +
 	"\x14requester_profile_id\x18\a \x01(\tR\x12requesterProfileId\x12'\n" +
@@ -1509,15 +1537,17 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	" \x03(\x05R\aseasons\x1a>\n" +
 	"\x10ExternalIdsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc3\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x96\x02\n" +
 	"\x17RequestRouterDescriptor\x12)\n" +
 	"\x10supports_seasons\x18\x01 \x01(\bR\x0fsupportsSeasons\x12:\n" +
-	"\x19reports_download_progress\x18\x02 \x01(\bR\x17reportsDownloadProgress\x12A\n" +
-	"\awording\x18\x03 \x01(\v2'.prairie.plugin.v1.RequestRouterWordingR\awording\"\xb6\x01\n" +
+	"\x19reports_download_progress\x18\x02 \x01(\bR\x17reportsDownloadProgress\x12>\n" +
+	"\awording\x18\x03 \x01(\v2$.prairie.plugin.v1.RequestRouterWordingR\awording\x12(\n" +
+	"\x10api_key_optional\x18\x04 \x01(\bR\x0eapiKeyOptional\x12*\n" +
+	"\x11base_url_optional\x18\x05 \x01(\bR\x0fbaseUrlOptional\"\xb0\x01\n" +
 	"\x14RequestRouterWording\x12\x12\n" +
-	"\x04step\x18\x01 \x01(\tR\x04step\x12?\n" +
-	"\x06queued\x18\x02 \x01(\v2'.prairie.plugin.v1.RequestStatusWordingR\x06queued\x12I\n" +
-	"\vdownloading\x18\x03 \x01(\v2'.prairie.plugin.v1.RequestStatusWordingR\vdownloading\"D\n" +
+	"\x04step\x18\x01 \x01(\tR\x04step\x12<\n" +
+	"\x06queued\x18\x02 \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\x06queued\x12F\n" +
+	"\vdownloading\x18\x03 \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\vdownloading\"D\n" +
 	"\x14RequestStatusWording\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12\x16\n" +
 	"\x06detail\x18\x02 \x01(\tR\x06detail\"\x87\x01\n" +
@@ -1528,12 +1558,12 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"\x06config\x18\x04 \x01(\v2\x17.google.protobuf.StructR\x06config\"6\n" +
 	"\x10RequestedQuality\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04is4k\x18\x02 \x01(\bR\x04is4k\"\xff\x01\n" +
+	"\x04is4k\x18\x02 \x01(\bR\x04is4k\"\xf6\x01\n" +
 	"\x0eFulfillRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12>\n" +
-	"\arequest\x18\x02 \x01(\v2$.prairie.plugin.v1.RequestDescriptorR\arequest\x12A\n" +
-	"\tqualities\x18\x03 \x03(\v2#.prairie.plugin.v1.RequestedQualityR\tqualities\x12E\n" +
-	"\vconnections\x18\x04 \x03(\v2#.prairie.plugin.v1.RouterConnectionR\vconnections\"\x91\x02\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12;\n" +
+	"\arequest\x18\x02 \x01(\v2!.prairie.plugin.v1.RequestDescriptorR\arequest\x12>\n" +
+	"\tqualities\x18\x03 \x03(\v2 .prairie.plugin.v1.RequestedQualityR\tqualities\x12B\n" +
+	"\vconnections\x18\x04 \x03(\v2 .prairie.plugin.v1.RouterConnectionR\vconnections\"\x8e\x02\n" +
 	"\x11FulfillmentTarget\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x1f\n" +
@@ -1541,21 +1571,21 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"externalId\x12'\n" +
 	"\x0fexternal_status\x18\x04 \x01(\tR\x0eexternalStatus\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12\x18\n" +
-	"\amessage\x18\x06 \x01(\tR\amessage\x12A\n" +
-	"\awording\x18\a \x01(\v2'.prairie.plugin.v1.RequestStatusWordingR\awording\"k\n" +
-	"\x0fFulfillResponse\x12>\n" +
-	"\atargets\x18\x01 \x03(\v2$.prairie.plugin.v1.FulfillmentTargetR\atargets\x12\x18\n" +
+	"\amessage\x18\x06 \x01(\tR\amessage\x12>\n" +
+	"\awording\x18\a \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\awording\"h\n" +
+	"\x0fFulfillResponse\x12;\n" +
+	"\atargets\x18\x01 \x03(\v2!.prairie.plugin.v1.FulfillmentTargetR\atargets\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"k\n" +
 	"\tTargetRef\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x1f\n" +
 	"\vexternal_id\x18\x03 \x01(\tR\n" +
-	"externalId\"\xf8\x01\n" +
+	"externalId\"\xef\x01\n" +
 	"\x12CheckStatusRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12>\n" +
-	"\arequest\x18\x02 \x01(\v2$.prairie.plugin.v1.RequestDescriptorR\arequest\x126\n" +
-	"\atargets\x18\x03 \x03(\v2\x1c.prairie.plugin.v1.TargetRefR\atargets\x12E\n" +
-	"\vconnections\x18\x04 \x03(\v2#.prairie.plugin.v1.RouterConnectionR\vconnections\"\xd5\x01\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12;\n" +
+	"\arequest\x18\x02 \x01(\v2!.prairie.plugin.v1.RequestDescriptorR\arequest\x123\n" +
+	"\atargets\x18\x03 \x03(\v2\x19.prairie.plugin.v1.TargetRefR\atargets\x12B\n" +
+	"\vconnections\x18\x04 \x03(\v2 .prairie.plugin.v1.RouterConnectionR\vconnections\"\xd5\x01\n" +
 	"\x10DownloadProgress\x12\x14\n" +
 	"\x05phase\x18\x01 \x01(\tR\x05phase\x12\x1f\n" +
 	"\vbytes_total\x18\x02 \x01(\x03R\n" +
@@ -1563,59 +1593,59 @@ const file_prairie_plugin_v1_request_router_proto_rawDesc = "" +
 	"\n" +
 	"bytes_left\x18\x03 \x01(\x03R\tbytesLeft\x12M\n" +
 	"\x14estimated_completion\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x13estimatedCompletion\x12\x1c\n" +
-	"\tdownloads\x18\x05 \x01(\x05R\tdownloads\"\xac\x02\n" +
+	"\tdownloads\x18\x05 \x01(\x05R\tdownloads\"\xa6\x02\n" +
 	"\fTargetStatus\x12\x18\n" +
 	"\aquality\x18\x01 \x01(\tR\aquality\x12#\n" +
 	"\rconnection_id\x18\x02 \x01(\tR\fconnectionId\x12\x16\n" +
 	"\x06status\x18\x03 \x01(\tR\x06status\x12'\n" +
 	"\x0fexternal_status\x18\x04 \x01(\tR\x0eexternalStatus\x12\x18\n" +
-	"\amessage\x18\x05 \x01(\tR\amessage\x12?\n" +
-	"\bprogress\x18\x06 \x01(\v2#.prairie.plugin.v1.DownloadProgressR\bprogress\x12A\n" +
-	"\awording\x18\a \x01(\v2'.prairie.plugin.v1.RequestStatusWordingR\awording\"R\n" +
-	"\x13CheckStatusResponse\x12;\n" +
-	"\bstatuses\x18\x01 \x03(\v2\x1f.prairie.plugin.v1.TargetStatusR\bstatuses\":\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\x12<\n" +
+	"\bprogress\x18\x06 \x01(\v2 .prairie.plugin.v1.DownloadProgressR\bprogress\x12>\n" +
+	"\awording\x18\a \x01(\v2$.prairie.plugin.v1.RequestStatusWordingR\awording\"O\n" +
+	"\x13CheckStatusResponse\x128\n" +
+	"\bstatuses\x18\x01 \x03(\v2\x1c.prairie.plugin.v1.TargetStatusR\bstatuses\":\n" +
 	"\fConfigOption\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x14\n" +
-	"\x05label\x18\x02 \x01(\tR\x05label\"M\n" +
-	"\x10ConfigOptionList\x129\n" +
-	"\aoptions\x18\x01 \x03(\v2\x1f.prairie.plugin.v1.ConfigOptionR\aoptions\"\x84\x01\n" +
+	"\x05label\x18\x02 \x01(\tR\x05label\"J\n" +
+	"\x10ConfigOptionList\x126\n" +
+	"\aoptions\x18\x01 \x03(\v2\x1c.prairie.plugin.v1.ConfigOptionR\aoptions\"\x81\x01\n" +
 	"\x18ListConfigOptionsRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12C\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
 	"\n" +
-	"connection\x18\x02 \x01(\v2#.prairie.plugin.v1.RouterConnectionR\n" +
-	"connection\"\xef\x01\n" +
-	"\x19ListConfigOptionsResponse\x12j\n" +
-	"\x10options_by_field\x18\x01 \x03(\v2@.prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntryR\x0eoptionsByField\x1af\n" +
+	"connection\x18\x02 \x01(\v2 .prairie.plugin.v1.RouterConnectionR\n" +
+	"connection\"\xe9\x01\n" +
+	"\x19ListConfigOptionsResponse\x12g\n" +
+	"\x10options_by_field\x18\x01 \x03(\v2=.prairie.plugin.v1.ListConfigOptionsResponse.OptionsByFieldEntryR\x0eoptionsByField\x1ac\n" +
 	"\x13OptionsByFieldEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x129\n" +
-	"\x05value\x18\x02 \x01(\v2#.prairie.plugin.v1.ConfigOptionListR\x05value:\x028\x01\"\x81\x01\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x126\n" +
+	"\x05value\x18\x02 \x01(\v2 .prairie.plugin.v1.ConfigOptionListR\x05value:\x028\x01\"~\n" +
 	"\x15TestConnectionRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12C\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
 	"\n" +
-	"connection\x18\x02 \x01(\v2#.prairie.plugin.v1.RouterConnectionR\n" +
+	"connection\x18\x02 \x01(\v2 .prairie.plugin.v1.RouterConnectionR\n" +
 	"connection\"B\n" +
 	"\x16TestConnectionResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xbc\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xb6\x01\n" +
 	"\x0fValidateRequest\x12#\n" +
-	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12C\n" +
+	"\rcapability_id\x18\x01 \x01(\tR\fcapabilityId\x12@\n" +
 	"\n" +
-	"connection\x18\x02 \x01(\v2#.prairie.plugin.v1.RouterConnectionR\n" +
-	"connection\x12?\n" +
-	"\bsiblings\x18\x03 \x03(\v2#.prairie.plugin.v1.RouterConnectionR\bsiblings\"\xca\x01\n" +
-	"\x10ValidateResponse\x12W\n" +
-	"\ffield_errors\x18\x01 \x03(\v24.prairie.plugin.v1.ValidateResponse.FieldErrorsEntryR\vfieldErrors\x12\x1d\n" +
+	"connection\x18\x02 \x01(\v2 .prairie.plugin.v1.RouterConnectionR\n" +
+	"connection\x12<\n" +
+	"\bsiblings\x18\x03 \x03(\v2 .prairie.plugin.v1.RouterConnectionR\bsiblings\"\xc7\x01\n" +
+	"\x10ValidateResponse\x12T\n" +
+	"\ffield_errors\x18\x01 \x03(\v21.prairie.plugin.v1.ValidateResponse.FieldErrorsEntryR\vfieldErrors\x12\x1d\n" +
 	"\n" +
 	"form_error\x18\x02 \x01(\tR\tformError\x1a>\n" +
 	"\x10FieldErrorsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xeb\x03\n" +
-	"\rRequestRouter\x12P\n" +
-	"\aFulfill\x12!.prairie.plugin.v1.FulfillRequest\x1a\".prairie.plugin.v1.FulfillResponse\x12\\\n" +
-	"\vCheckStatus\x12%.prairie.plugin.v1.CheckStatusRequest\x1a&.prairie.plugin.v1.CheckStatusResponse\x12n\n" +
-	"\x11ListConfigOptions\x12+.prairie.plugin.v1.ListConfigOptionsRequest\x1a,.prairie.plugin.v1.ListConfigOptionsResponse\x12e\n" +
-	"\x0eTestConnection\x12(.prairie.plugin.v1.TestConnectionRequest\x1a).prairie.plugin.v1.TestConnectionResponse\x12S\n" +
-	"\bValidate\x12\".prairie.plugin.v1.ValidateRequest\x1a#.prairie.plugin.v1.ValidateResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xcd\x03\n" +
+	"\rRequestRouter\x12J\n" +
+	"\aFulfill\x12\x1e.prairie.plugin.v1.FulfillRequest\x1a\x1f.prairie.plugin.v1.FulfillResponse\x12V\n" +
+	"\vCheckStatus\x12\".prairie.plugin.v1.CheckStatusRequest\x1a#.prairie.plugin.v1.CheckStatusResponse\x12h\n" +
+	"\x11ListConfigOptions\x12(.prairie.plugin.v1.ListConfigOptionsRequest\x1a).prairie.plugin.v1.ListConfigOptionsResponse\x12_\n" +
+	"\x0eTestConnection\x12%.prairie.plugin.v1.TestConnectionRequest\x1a&.prairie.plugin.v1.TestConnectionResponse\x12M\n" +
+	"\bValidate\x12\x1f.prairie.plugin.v1.ValidateRequest\x1a .prairie.plugin.v1.ValidateResponseBPZNgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_request_router_proto_rawDescOnce sync.Once

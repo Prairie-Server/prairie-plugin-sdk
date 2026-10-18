@@ -52,6 +52,11 @@ with a `default` arm rather than an exhaustive match, and do not assume the
 constants shipped in any given SDK tag are the complete set. The same rule
 applies to any future open vocabulary added to `v1`.
 
+`FetchMarkersRequest.episode_numbering` and `SubmitMarkerRequest.episode_numbering`
+are open too. Hosts send an external ID key, today `tvdb` or `tmdb`, or leave the
+field empty when they cannot tell. A marker provider treats a value it does not
+recognize like an empty one.
+
 `DownloadProgress.phase` runs the other way: plugins send it and the host reads
 it. The current values are `queued`, `downloading`, `paused`, `stalled`,
 `importing`, and `import_blocked`. Hosts treat a value they do not recognize as
@@ -160,6 +165,20 @@ newer host stored could reject it. An absent wording, or any empty value in it,
 means the host's own neutral words. Plugins can therefore declare wording
 without raising their minimum host version.
 
+`RequestRouterDescriptor.api_key_optional` and `base_url_optional` (added in
+v0.26.0) are plain booleans, so they have no presence: unset, or an absent
+descriptor, keeps the behaviour hosts had before the flags existed. The host
+skips a connection without an API key, and its admin form asks for a key and a
+base URL. Hosts that predate the flags drop them as unknown fields when they
+install a plugin archive, so a plugin that sets `api_key_optional` gets
+requests without a key only from a host that reads it. Prairie reads a bare
+plugin binary's manifest strictly, so a Prairie host that predates the flags
+refuses to install a binary that declares them; install it from an archive
+there (Prairie-Server/prairie-server#2436). Hosts read the flags from the capability
+metadata stored when the plugin was installed or updated. A host built on an
+older SDK stored that metadata without them, so they take effect after the
+plugin is next updated on a host that reads them.
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and
@@ -171,6 +190,17 @@ verify images by the per-image field rather than assume a filtered response.
 - Host installs should reject incompatible API versions before runtime startup.
 - A plugin binary should return the same manifest shape that Prairie installs, except that binaries may compute their checksum dynamically at runtime.
 - From this version, `convert.DecodeCapability` ignores fields and enum values it does not know, so a server node built on this SDK or later, in a mixed-version cluster sharing one database, still loads capability metadata written by a newer SDK; it only loses the parts added after its own SDK version. Nodes built on an earlier SDK decode strictly and reject such metadata, so upgrade every node past them before installing plugins that publish newer fields.
+
+### Watch-sync batch size
+
+`WatchSyncProviderDescriptor.max_batch_size` accepts 1 to 1000 from v0.27.0;
+earlier releases accept 1 to 100. The value bounds every `ApplyEvents` call
+(watched history, watchlist, favorites, and ratings) and sets the page size a
+host asks for in `ListRemoteState`, so a plugin that raises it should handle
+batches and pages of that size for every flow it declares. Manifest validation runs in the host when it
+installs or loads a plugin and in the catalog tooling when it publishes one, so
+a plugin that declares more than 100 needs both built on v0.27.0 or later. An
+older host refuses to install or load it.
 
 ## Go Support
 
