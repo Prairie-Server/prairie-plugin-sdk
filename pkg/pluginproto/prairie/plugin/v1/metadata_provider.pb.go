@@ -620,8 +620,12 @@ type MetadataItem struct {
 	// this provider response. Older plugins decode as false, so hosts must merge
 	// rather than delete aliases when completeness is unknown.
 	TitleAliasesComplete bool `protobuf:"varint,36,opt,name=title_aliases_complete,json=titleAliasesComplete,proto3" json:"title_aliases_complete,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// ISO 639-1 language of overview and tagline. Empty means the text is in the
+	// requested language or the plugin cannot tell; set it when the provider
+	// had no text in the requested language and returned another language's.
+	OverviewLanguage string `protobuf:"bytes,37,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *MetadataItem) Reset() {
@@ -905,6 +909,13 @@ func (x *MetadataItem) GetTitleAliasesComplete() bool {
 		return x.TitleAliasesComplete
 	}
 	return false
+}
+
+func (x *MetadataItem) GetOverviewLanguage() string {
+	if x != nil {
+		return x.OverviewLanguage
+	}
+	return ""
 }
 
 type GetMetadataRequest struct {
@@ -1240,17 +1251,21 @@ func (x *GetPersonDetailResponse) GetPerson() *PersonDetailRecord {
 }
 
 type SeasonRecord struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SeasonNumber  int32                  `protobuf:"varint,1,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Overview      string                 `protobuf:"bytes,3,opt,name=overview,proto3" json:"overview,omitempty"`
-	AirDate       string                 `protobuf:"bytes,4,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
-	PosterPath    string                 `protobuf:"bytes,5,opt,name=poster_path,json=posterPath,proto3" json:"poster_path,omitempty"`
-	Metadata      *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	ProviderId    string                 `protobuf:"bytes,7,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	ProviderIds   *structpb.Struct       `protobuf:"bytes,8,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	SeasonNumber int32                  `protobuf:"varint,1,opt,name=season_number,json=seasonNumber,proto3" json:"season_number,omitempty"`
+	Title        string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Overview     string                 `protobuf:"bytes,3,opt,name=overview,proto3" json:"overview,omitempty"`
+	AirDate      string                 `protobuf:"bytes,4,opt,name=air_date,json=airDate,proto3" json:"air_date,omitempty"`
+	PosterPath   string                 `protobuf:"bytes,5,opt,name=poster_path,json=posterPath,proto3" json:"poster_path,omitempty"`
+	Metadata     *structpb.Struct       `protobuf:"bytes,6,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	ProviderId   string                 `protobuf:"bytes,7,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	ProviderIds  *structpb.Struct       `protobuf:"bytes,8,opt,name=provider_ids,json=providerIds,proto3" json:"provider_ids,omitempty"`
+	// ISO 639-1 languages of title and overview, with MetadataItem's
+	// overview_language semantics: empty means the requested language or unknown.
+	TitleLanguage    string `protobuf:"bytes,9,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
+	OverviewLanguage string `protobuf:"bytes,10,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *SeasonRecord) Reset() {
@@ -1337,6 +1352,20 @@ func (x *SeasonRecord) GetProviderIds() *structpb.Struct {
 		return x.ProviderIds
 	}
 	return nil
+}
+
+func (x *SeasonRecord) GetTitleLanguage() string {
+	if x != nil {
+		return x.TitleLanguage
+	}
+	return ""
+}
+
+func (x *SeasonRecord) GetOverviewLanguage() string {
+	if x != nil {
+		return x.OverviewLanguage
+	}
+	return ""
 }
 
 type GetSeasonsRequest struct {
@@ -1456,8 +1485,12 @@ type EpisodeRecord struct {
 	Ratings       *structpb.Struct       `protobuf:"bytes,9,opt,name=ratings,proto3" json:"ratings,omitempty"`
 	Metadata      *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	ProviderId    string                 `protobuf:"bytes,11,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// ISO 639-1 languages of title and overview, with MetadataItem's
+	// overview_language semantics: empty means the requested language or unknown.
+	TitleLanguage    string `protobuf:"bytes,12,opt,name=title_language,json=titleLanguage,proto3" json:"title_language,omitempty"`
+	OverviewLanguage string `protobuf:"bytes,13,opt,name=overview_language,json=overviewLanguage,proto3" json:"overview_language,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *EpisodeRecord) Reset() {
@@ -1563,6 +1596,20 @@ func (x *EpisodeRecord) GetMetadata() *structpb.Struct {
 func (x *EpisodeRecord) GetProviderId() string {
 	if x != nil {
 		return x.ProviderId
+	}
+	return ""
+}
+
+func (x *EpisodeRecord) GetTitleLanguage() string {
+	if x != nil {
+		return x.TitleLanguage
+	}
+	return ""
+}
+
+func (x *EpisodeRecord) GetOverviewLanguage() string {
+	if x != nil {
+		return x.OverviewLanguage
 	}
 	return ""
 }
@@ -2108,12 +2155,12 @@ var File_prairie_plugin_v1_metadata_provider_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\n" +
-	")prairie/plugin/v1/metadata_provider.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"R\n" +
+	"&prairie/plugin/v1/metadata_provider.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"R\n" +
 	"\n" +
 	"TitleAlias\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x1a\n" +
 	"\blanguage\x18\x02 \x01(\tR\blanguage\x12\x12\n" +
-	"\x04kind\x18\x03 \x01(\tR\x04kind\"\xde\x03\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\"\xdb\x03\n" +
 	"\x14ProviderSearchResult\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -2123,8 +2170,8 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\x04year\x18\x05 \x01(\x05R\x04year\x12\x1a\n" +
 	"\boverview\x18\x06 \x01(\tR\boverview\x12:\n" +
 	"\fprovider_ids\x18\a \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1b\n" +
-	"\timage_url\x18\b \x01(\tR\bimageUrl\x12B\n" +
-	"\rtitle_aliases\x18\t \x03(\v2\x1d.prairie.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
+	"\timage_url\x18\b \x01(\tR\bimageUrl\x12?\n" +
+	"\rtitle_aliases\x18\t \x03(\v2\x1a.prairie.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
 	"\x0etitle_language\x18\n" +
 	" \x01(\tR\rtitleLanguage\x12*\n" +
 	"\x11title_is_fallback\x18\v \x01(\bR\x0ftitleIsFallback\x12+\n" +
@@ -2134,9 +2181,9 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\titem_type\x18\x02 \x01(\tR\bitemType\x12\x12\n" +
 	"\x04year\x18\x03 \x01(\x05R\x04year\x12:\n" +
 	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
-	"\blanguage\x18\x05 \x01(\tR\blanguage\"[\n" +
-	"\x16SearchMetadataResponse\x12A\n" +
-	"\aresults\x18\x01 \x03(\v2'.prairie.plugin.v1.ProviderSearchResultR\aresults\"\xa3\x02\n" +
+	"\blanguage\x18\x05 \x01(\tR\blanguage\"X\n" +
+	"\x16SearchMetadataResponse\x12>\n" +
+	"\aresults\x18\x01 \x03(\v2$.prairie.plugin.v1.ProviderSearchResultR\aresults\"\xa3\x02\n" +
 	"\fPersonRecord\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x12\n" +
 	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x1c\n" +
@@ -2161,8 +2208,7 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\vis_official\x18\a \x01(\bR\n" +
 	"isOfficial\x12\x1b\n" +
 	"\tsize_hint\x18\b \x01(\x05R\bsizeHint\x12!\n" +
-	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\xf0\n" +
-	"\n" +
+	"\fpublished_at\x18\t \x01(\tR\vpublishedAt\"\x94\v\n" +
 	"\fMetadataItem\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
@@ -2194,25 +2240,26 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\tlogo_path\x18\x18 \x01(\tR\blogoPath\x12!\n" +
 	"\fseason_count\x18\x19 \x01(\x05R\vseasonCount\x12$\n" +
 	"\x0efirst_air_date\x18\x1a \x01(\tR\ffirstAirDate\x12\"\n" +
-	"\rlast_air_date\x18\x1b \x01(\tR\vlastAirDate\x127\n" +
-	"\x06people\x18\x1c \x03(\v2\x1f.prairie.plugin.v1.PersonRecordR\x06people\x12!\n" +
+	"\rlast_air_date\x18\x1b \x01(\tR\vlastAirDate\x124\n" +
+	"\x06people\x18\x1c \x03(\v2\x1c.prairie.plugin.v1.PersonRecordR\x06people\x12!\n" +
 	"\frelease_date\x18\x1d \x01(\tR\vreleaseDate\x12\x19\n" +
 	"\bair_time\x18\x1e \x01(\tR\aairTime\x12\x16\n" +
-	"\x06status\x18\x1f \x01(\tR\x06status\x126\n" +
-	"\x06videos\x18  \x03(\v2\x1e.prairie.plugin.v1.VideoRecordR\x06videos\x12B\n" +
-	"\rtitle_aliases\x18! \x03(\v2\x1d.prairie.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
+	"\x06status\x18\x1f \x01(\tR\x06status\x123\n" +
+	"\x06videos\x18  \x03(\v2\x1b.prairie.plugin.v1.VideoRecordR\x06videos\x12?\n" +
+	"\rtitle_aliases\x18! \x03(\v2\x1a.prairie.plugin.v1.TitleAliasR\ftitleAliases\x12%\n" +
 	"\x0etitle_language\x18\" \x01(\tR\rtitleLanguage\x12*\n" +
 	"\x11title_is_fallback\x18# \x01(\bR\x0ftitleIsFallback\x124\n" +
-	"\x16title_aliases_complete\x18$ \x01(\bR\x14titleAliasesComplete\"\xc7\x01\n" +
+	"\x16title_aliases_complete\x18$ \x01(\bR\x14titleAliasesComplete\x12+\n" +
+	"\x11overview_language\x18% \x01(\tR\x10overviewLanguage\"\xc7\x01\n" +
 	"\x12GetMetadataRequest\x12\x1f\n" +
 	"\vprovider_id\x18\x01 \x01(\tR\n" +
 	"providerId\x12\x1b\n" +
 	"\titem_type\x18\x02 \x01(\tR\bitemType\x12:\n" +
 	"\fprovider_ids\x18\x03 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
 	"\blanguage\x18\x04 \x01(\tR\blanguage\x12\x1b\n" +
-	"\tfile_path\x18\x05 \x01(\tR\bfilePath\"J\n" +
-	"\x13GetMetadataResponse\x123\n" +
-	"\x04item\x18\x01 \x01(\v2\x1f.prairie.plugin.v1.MetadataItemR\x04item\"p\n" +
+	"\tfile_path\x18\x05 \x01(\tR\bfilePath\"G\n" +
+	"\x13GetMetadataResponse\x120\n" +
+	"\x04item\x18\x01 \x01(\v2\x1c.prairie.plugin.v1.MetadataItemR\x04item\"p\n" +
 	"\x16GetPersonDetailRequest\x12:\n" +
 	"\fprovider_ids\x18\x01 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
 	"\blanguage\x18\x02 \x01(\tR\blanguage\"\xd5\x02\n" +
@@ -2232,9 +2279,9 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"photo_path\x18\b \x01(\tR\tphotoPath\x12'\n" +
 	"\x0fphoto_thumbhash\x18\t \x01(\tR\x0ephotoThumbhash\x12:\n" +
 	"\fprovider_ids\x18\n" +
-	" \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"X\n" +
-	"\x17GetPersonDetailResponse\x12=\n" +
-	"\x06person\x18\x01 \x01(\v2%.prairie.plugin.v1.PersonDetailRecordR\x06person\"\xb3\x02\n" +
+	" \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"U\n" +
+	"\x17GetPersonDetailResponse\x12:\n" +
+	"\x06person\x18\x01 \x01(\v2\".prairie.plugin.v1.PersonDetailRecordR\x06person\"\x87\x03\n" +
 	"\fSeasonRecord\x12#\n" +
 	"\rseason_number\x18\x01 \x01(\x05R\fseasonNumber\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1a\n" +
@@ -2245,13 +2292,16 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1f\n" +
 	"\vprovider_id\x18\a \x01(\tR\n" +
 	"providerId\x12:\n" +
-	"\fprovider_ids\x18\b \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\x99\x01\n" +
+	"\fprovider_ids\x18\b \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12%\n" +
+	"\x0etitle_language\x18\t \x01(\tR\rtitleLanguage\x12+\n" +
+	"\x11overview_language\x18\n" +
+	" \x01(\tR\x10overviewLanguage\"\x99\x01\n" +
 	"\x11GetSeasonsRequest\x12,\n" +
 	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12:\n" +
 	"\fprovider_ids\x18\x02 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
-	"\blanguage\x18\x03 \x01(\tR\blanguage\"O\n" +
-	"\x12GetSeasonsResponse\x129\n" +
-	"\aseasons\x18\x01 \x03(\v2\x1f.prairie.plugin.v1.SeasonRecordR\aseasons\"\xa6\x03\n" +
+	"\blanguage\x18\x03 \x01(\tR\blanguage\"L\n" +
+	"\x12GetSeasonsResponse\x126\n" +
+	"\aseasons\x18\x01 \x03(\v2\x1c.prairie.plugin.v1.SeasonRecordR\aseasons\"\xfa\x03\n" +
 	"\rEpisodeRecord\x12#\n" +
 	"\rseason_number\x18\x01 \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\x02 \x01(\x05R\repisodeNumber\x12\x14\n" +
@@ -2266,14 +2316,16 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\bmetadata\x18\n" +
 	" \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1f\n" +
 	"\vprovider_id\x18\v \x01(\tR\n" +
-	"providerId\"\xbf\x01\n" +
+	"providerId\x12%\n" +
+	"\x0etitle_language\x18\f \x01(\tR\rtitleLanguage\x12+\n" +
+	"\x11overview_language\x18\r \x01(\tR\x10overviewLanguage\"\xbf\x01\n" +
 	"\x12GetEpisodesRequest\x12,\n" +
 	"\x12series_provider_id\x18\x01 \x01(\tR\x10seriesProviderId\x12#\n" +
 	"\rseason_number\x18\x02 \x01(\x05R\fseasonNumber\x12:\n" +
 	"\fprovider_ids\x18\x03 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
-	"\blanguage\x18\x04 \x01(\tR\blanguage\"S\n" +
-	"\x13GetEpisodesResponse\x12<\n" +
-	"\bepisodes\x18\x01 \x03(\v2 .prairie.plugin.v1.EpisodeRecordR\bepisodes\"\xee\x01\n" +
+	"\blanguage\x18\x04 \x01(\tR\blanguage\"P\n" +
+	"\x13GetEpisodesResponse\x129\n" +
+	"\bepisodes\x18\x01 \x03(\v2\x1d.prairie.plugin.v1.EpisodeRecordR\bepisodes\"\xee\x01\n" +
 	"\vImageRecord\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12\x10\n" +
 	"\x03url\x18\x02 \x01(\tR\x03url\x12\x1a\n" +
@@ -2290,9 +2342,9 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\fprovider_ids\x18\x03 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\x12\x1a\n" +
 	"\blanguage\x18\x04 \x01(\tR\blanguage\x12(\n" +
 	"\rseason_number\x18\x05 \x01(\x05H\x00R\fseasonNumber\x88\x01\x01B\x10\n" +
-	"\x0e_season_number\"K\n" +
-	"\x11GetImagesResponse\x126\n" +
-	"\x06images\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.ImageRecordR\x06images\"F\n" +
+	"\x0e_season_number\"H\n" +
+	"\x11GetImagesResponse\x123\n" +
+	"\x06images\x18\x01 \x03(\v2\x1b.prairie.plugin.v1.ImageRecordR\x06images\"F\n" +
 	"\x16ResolveImageURLRequest\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x18\n" +
 	"\avariant\x18\x02 \x01(\tR\avariant\"+\n" +
@@ -2300,25 +2352,25 @@ const file_prairie_plugin_v1_metadata_provider_proto_rawDesc = "" +
 	"\x03url\x18\x01 \x01(\tR\x03url\"I\n" +
 	"\x17ResolveImageURLsRequest\x12\x14\n" +
 	"\x05paths\x18\x01 \x03(\tR\x05paths\x12\x18\n" +
-	"\avariant\x18\x02 \x01(\tR\avariant\"\x9e\x01\n" +
-	"\x18ResolveImageURLsResponse\x12I\n" +
-	"\x04urls\x18\x01 \x03(\v25.prairie.plugin.v1.ResolveImageURLsResponse.UrlsEntryR\x04urls\x1a7\n" +
+	"\avariant\x18\x02 \x01(\tR\avariant\"\x9b\x01\n" +
+	"\x18ResolveImageURLsResponse\x12F\n" +
+	"\x04urls\x18\x01 \x03(\v22.prairie.plugin.v1.ResolveImageURLsResponse.UrlsEntryR\x04urls\x1a7\n" +
 	"\tUrlsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xa1\x06\n" +
-	"\x10MetadataProvider\x12]\n" +
-	"\x06Search\x12(.prairie.plugin.v1.SearchMetadataRequest\x1a).prairie.plugin.v1.SearchMetadataResponse\x12\\\n" +
-	"\vGetMetadata\x12%.prairie.plugin.v1.GetMetadataRequest\x1a&.prairie.plugin.v1.GetMetadataResponse\x12h\n" +
-	"\x0fGetPersonDetail\x12).prairie.plugin.v1.GetPersonDetailRequest\x1a*.prairie.plugin.v1.GetPersonDetailResponse\x12Y\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012\xf1\x05\n" +
+	"\x10MetadataProvider\x12W\n" +
+	"\x06Search\x12%.prairie.plugin.v1.SearchMetadataRequest\x1a&.prairie.plugin.v1.SearchMetadataResponse\x12V\n" +
+	"\vGetMetadata\x12\".prairie.plugin.v1.GetMetadataRequest\x1a#.prairie.plugin.v1.GetMetadataResponse\x12b\n" +
+	"\x0fGetPersonDetail\x12&.prairie.plugin.v1.GetPersonDetailRequest\x1a'.prairie.plugin.v1.GetPersonDetailResponse\x12S\n" +
 	"\n" +
-	"GetSeasons\x12$.prairie.plugin.v1.GetSeasonsRequest\x1a%.prairie.plugin.v1.GetSeasonsResponse\x12\\\n" +
-	"\vGetEpisodes\x12%.prairie.plugin.v1.GetEpisodesRequest\x1a&.prairie.plugin.v1.GetEpisodesResponse\x12V\n" +
-	"\tGetImages\x12#.prairie.plugin.v1.GetImagesRequest\x1a$.prairie.plugin.v1.GetImagesResponse\x12h\n" +
-	"\x0fResolveImageURL\x12).prairie.plugin.v1.ResolveImageURLRequest\x1a*.prairie.plugin.v1.ResolveImageURLResponse\x12k\n" +
-	"\x10ResolveImageURLs\x12*.prairie.plugin.v1.ResolveImageURLsRequest\x1a+.prairie.plugin.v1.ResolveImageURLsResponse2\xe6\x01\n" +
-	"\rImageResolver\x12h\n" +
-	"\x0fResolveImageURL\x12).prairie.plugin.v1.ResolveImageURLRequest\x1a*.prairie.plugin.v1.ResolveImageURLResponse\x12k\n" +
-	"\x10ResolveImageURLs\x12*.prairie.plugin.v1.ResolveImageURLsRequest\x1a+.prairie.plugin.v1.ResolveImageURLsResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"GetSeasons\x12!.prairie.plugin.v1.GetSeasonsRequest\x1a\".prairie.plugin.v1.GetSeasonsResponse\x12V\n" +
+	"\vGetEpisodes\x12\".prairie.plugin.v1.GetEpisodesRequest\x1a#.prairie.plugin.v1.GetEpisodesResponse\x12P\n" +
+	"\tGetImages\x12 .prairie.plugin.v1.GetImagesRequest\x1a!.prairie.plugin.v1.GetImagesResponse\x12b\n" +
+	"\x0fResolveImageURL\x12&.prairie.plugin.v1.ResolveImageURLRequest\x1a'.prairie.plugin.v1.ResolveImageURLResponse\x12e\n" +
+	"\x10ResolveImageURLs\x12'.prairie.plugin.v1.ResolveImageURLsRequest\x1a(.prairie.plugin.v1.ResolveImageURLsResponse2\xda\x01\n" +
+	"\rImageResolver\x12b\n" +
+	"\x0fResolveImageURL\x12&.prairie.plugin.v1.ResolveImageURLRequest\x1a'.prairie.plugin.v1.ResolveImageURLResponse\x12e\n" +
+	"\x10ResolveImageURLs\x12'.prairie.plugin.v1.ResolveImageURLsRequest\x1a(.prairie.plugin.v1.ResolveImageURLsResponseBPZNgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_metadata_provider_proto_rawDescOnce sync.Once

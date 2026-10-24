@@ -179,6 +179,25 @@ metadata stored when the plugin was installed or updated. A host built on an
 older SDK stored that metadata without them, so they take effect after the
 plugin is next updated on a host that reads them.
 
+`MetadataItem.overview_language` and the `title_language` and
+`overview_language` fields on `SeasonRecord` and `EpisodeRecord` (added in
+v0.29.0) are plain strings, like the older `MetadataItem.title_language`.
+Empty means the text is in the requested language, or the plugin cannot tell;
+hosts read every plugin built before the fields existed that way. A plugin
+sets one when the provider had no text in the requested language and it
+returned another language's text instead, such as a record's original-language
+overview. Hosts rank that text below another provider's text in the requested
+language and may replace it with text fetched in a fallback language. Hosts
+that predate the fields ignore them.
+
+The marker fields added in v0.30.0 are plain scalars, so they have no
+presence. A host that predates them sends an empty `file_hash`, a `file_size`
+of 0, `accepts_absent` false, and submissions without `source`, `algorithm`,
+`confidence`, or `absent`. A marker provider must not return a
+`MarkerSegment` with `absent` set unless the request's `accepts_absent` is
+true: an older host reads a segment without bounds as covering the whole
+file. See [marker-provider.md](marker-provider.md).
+
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
 `ImageRecord.season_number` whenever the season is known. Hosts must bucket and
