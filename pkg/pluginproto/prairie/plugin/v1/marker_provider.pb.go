@@ -792,20 +792,20 @@ var File_prairie_plugin_v1_marker_provider_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\n" +
-	"$prairie/plugin/v1/marker_provider.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"\x9a\x01\n" +
+	"'prairie/plugin/v1/marker_provider.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\"\x9a\x01\n" +
 	"\x11MarkerExternalIDs\x12\x17\n" +
 	"\atmdb_id\x18\x01 \x01(\tR\x06tmdbId\x12\x17\n" +
 	"\aimdb_id\x18\x02 \x01(\tR\x06imdbId\x12\x17\n" +
 	"\atvdb_id\x18\x03 \x01(\tR\x06tvdbId\x12:\n" +
-	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\xac\x04\n" +
+	"\fprovider_ids\x18\x04 \x01(\v2\x17.google.protobuf.StructR\vproviderIds\"\xb2\x04\n" +
 	"\x13FetchMarkersRequest\x12\x1b\n" +
-	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
-	"\fexternal_ids\x18\x02 \x01(\v2!.prairie.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
+	"\titem_type\x18\x01 \x01(\tR\bitemType\x12G\n" +
+	"\fexternal_ids\x18\x02 \x01(\v2$.prairie.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
 	"\rseason_number\x18\x03 \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\x04 \x01(\x05R\repisodeNumber\x12)\n" +
 	"\x10duration_seconds\x18\x05 \x01(\x01R\x0fdurationSeconds\x123\n" +
-	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12S\n" +
-	"\x14episode_external_ids\x18\a \x01(\v2!.prairie.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
+	"\bmetadata\x18\x06 \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12V\n" +
+	"\x14episode_external_ids\x18\a \x01(\v2$.prairie.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
 	"\repisode_title\x18\b \x01(\tR\fepisodeTitle\x12+\n" +
 	"\x11episode_numbering\x18\t \x01(\tR\x10episodeNumbering\x12\x1b\n" +
 	"\tfile_hash\x18\n" +
@@ -825,13 +825,13 @@ const file_prairie_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x16\n" +
 	"\x06absent\x18\b \x01(\bR\x06absentB\x10\n" +
 	"\x0e_start_secondsB\x0e\n" +
-	"\f_end_seconds\"\x84\x01\n" +
-	"\x14FetchMarkersResponse\x127\n" +
-	"\amarkers\x18\x01 \x03(\v2\x1d.prairie.plugin.v1.MarkerSegmentR\amarkers\x123\n" +
-	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\xff\x05\n" +
+	"\f_end_seconds\"\x87\x01\n" +
+	"\x14FetchMarkersResponse\x12:\n" +
+	"\amarkers\x18\x01 \x03(\v2 .prairie.plugin.v1.MarkerSegmentR\amarkers\x123\n" +
+	"\bmetadata\x18\x02 \x01(\v2\x17.google.protobuf.StructR\bmetadata\"\x85\x06\n" +
 	"\x13SubmitMarkerRequest\x12\x1b\n" +
-	"\titem_type\x18\x01 \x01(\tR\bitemType\x12D\n" +
-	"\fexternal_ids\x18\x02 \x01(\v2!.prairie.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
+	"\titem_type\x18\x01 \x01(\tR\bitemType\x12G\n" +
+	"\fexternal_ids\x18\x02 \x01(\v2$.prairie.plugin.v1.MarkerExternalIDsR\vexternalIds\x12#\n" +
 	"\rseason_number\x18\x03 \x01(\x05R\fseasonNumber\x12%\n" +
 	"\x0eepisode_number\x18\x04 \x01(\x05R\repisodeNumber\x12\x18\n" +
 	"\asegment\x18\x05 \x01(\tR\asegment\x12(\n" +
@@ -839,9 +839,9 @@ const file_prairie_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\vend_seconds\x18\a \x01(\x01H\x01R\n" +
 	"endSeconds\x88\x01\x01\x12)\n" +
 	"\x10duration_seconds\x18\b \x01(\x01R\x0fdurationSeconds\x123\n" +
-	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12S\n" +
+	"\bmetadata\x18\t \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12V\n" +
 	"\x14episode_external_ids\x18\n" +
-	" \x01(\v2!.prairie.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
+	" \x01(\v2$.prairie.plugin.v1.MarkerExternalIDsR\x12episodeExternalIds\x12#\n" +
 	"\repisode_title\x18\v \x01(\tR\fepisodeTitle\x12+\n" +
 	"\x11episode_numbering\x18\f \x01(\tR\x10episodeNumbering\x12\x1b\n" +
 	"\tfile_hash\x18\r \x01(\tR\bfileHash\x12\x1b\n" +
@@ -869,11 +869,11 @@ const file_prairie_plugin_v1_marker_provider_proto_rawDesc = "" +
 	"\x0ecurrent_streak\x18\x06 \x01(\x05R\rcurrentStreak\x12\x1f\n" +
 	"\vbest_streak\x18\a \x01(\x05R\n" +
 	"bestStreak\x123\n" +
-	"\bmetadata\x18\b \x01(\v2\x17.google.protobuf.StructR\bmetadata2\xbc\x02\n" +
-	"\x0eMarkerProvider\x12Y\n" +
-	"\fFetchMarkers\x12#.prairie.plugin.v1.FetchMarkersRequest\x1a$.prairie.plugin.v1.FetchMarkersResponse\x12Y\n" +
-	"\fSubmitMarker\x12#.prairie.plugin.v1.SubmitMarkerRequest\x1a$.prairie.plugin.v1.SubmitMarkerResponse\x12t\n" +
-	"\x16GetMarkerProviderStats\x12-.prairie.plugin.v1.GetMarkerProviderStatsRequest\x1a+.prairie.plugin.v1.MarkerProviderStatsResponseBPZNgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"\bmetadata\x18\b \x01(\v2\x17.google.protobuf.StructR\bmetadata2\xce\x02\n" +
+	"\x0eMarkerProvider\x12_\n" +
+	"\fFetchMarkers\x12&.prairie.plugin.v1.FetchMarkersRequest\x1a'.prairie.plugin.v1.FetchMarkersResponse\x12_\n" +
+	"\fSubmitMarker\x12&.prairie.plugin.v1.SubmitMarkerRequest\x1a'.prairie.plugin.v1.SubmitMarkerResponse\x12z\n" +
+	"\x16GetMarkerProviderStats\x120.prairie.plugin.v1.GetMarkerProviderStatsRequest\x1a..prairie.plugin.v1.MarkerProviderStatsResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_marker_provider_proto_rawDescOnce sync.Once
