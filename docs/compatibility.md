@@ -102,6 +102,11 @@ as "not supported". A network provider cannot fall back that way: without
 signed in until the session's absolute age limit, so `ServeManifestWithOptions`
 refuses to start a plugin that declares the `network` mode without it.
 
+`ConfigurationChecks` (v0.32.0) is declared by the manifest metadata key
+`"configuration_check": true`. Hosts call it only for plugins that declare the
+key, so a host that predates the service ignores the key, and a plugin built
+before it keeps the host's built-in probes.
+
 ## Presence-Sensitive Optional Fields
 
 Some contract fields use proto3 `optional` because absence and zero have
@@ -197,6 +202,16 @@ of 0, `accepts_absent` false, and submissions without `source`, `algorithm`,
 `MarkerSegment` with `absent` set unless the request's `accepts_absent` is
 true: an older host reads a segment without bounds as covering the whole
 file. See [marker-provider.md](marker-provider.md).
+
+`SeasonRecord.backdrop_path` (added in v0.31.0) is a plain string, like
+`poster_path`. Empty means the provider has no landscape art for the season,
+which is how hosts read every plugin built before the field existed. A host
+that reads it may clear a season backdrop an earlier refresh stored when every
+season provider answers without one, unless an admin locked the series'
+artwork, so a plugin should leave it empty only when the provider really has
+no season backdrop. Hosts that predate the field ignore it. The season-scoped
+`GetImages` gallery is unchanged: an `ImageRecord` of type backdrop with
+`season_number` set already offers a season backdrop for picking.
 
 A season-scoped `GetImagesRequest` is a scope, not a guarantee. Plugins that
 can filter by season should do so, and plugins should populate
