@@ -128,14 +128,14 @@ var File_prairie_plugin_v1_configuration_checks_proto protoreflect.FileDescripto
 
 const file_prairie_plugin_v1_configuration_checks_proto_rawDesc = "" +
 	"\n" +
-	")prairie/plugin/v1/configuration_checks.proto\x12\x0eprairie.plugin.v1\x1a\x1bprairie/plugin/v1/common.proto\"O\n" +
-	"\x18TestConfigurationRequest\x123\n" +
-	"\x06config\x18\x01 \x03(\v2\x1b.prairie.plugin.v1.ConfigEntryR\x06config\"E\n" +
+	",prairie/plugin/v1/configuration_checks.proto\x12\x11prairie.plugin.v1\x1a\x1eprairie/plugin/v1/common.proto\"R\n" +
+	"\x18TestConfigurationRequest\x126\n" +
+	"\x06config\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.ConfigEntryR\x06config\"E\n" +
 	"\x19TestConfigurationResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\x7f\n" +
-	"\x13ConfigurationChecks\x12h\n" +
-	"\x11TestConfiguration\x12(.prairie.plugin.v1.TestConfigurationRequest\x1a).prairie.plugin.v1.TestConfigurationResponseBPZNgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"\amessage\x18\x02 \x01(\tR\amessage2\x85\x01\n" +
+	"\x13ConfigurationChecks\x12n\n" +
+	"\x11TestConfiguration\x12+.prairie.plugin.v1.TestConfigurationRequest\x1a,.prairie.plugin.v1.TestConfigurationResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_configuration_checks_proto_rawDescOnce sync.Once
