@@ -988,6 +988,16 @@ type CapabilityDescriptor struct {
 	// of type "request_router.v1". Optional: an absent descriptor declares no
 	// optional request-router features.
 	RequestRouter *RequestRouterDescriptor `protobuf:"bytes,12,opt,name=request_router,json=requestRouter,proto3" json:"request_router,omitempty"`
+	// Typed notification-channel contract metadata. Required for, and only
+	// meaningful on, capabilities of type "notification_channel.v1".
+	NotificationChannel *NotificationChannelDescriptor `protobuf:"bytes,13,opt,name=notification_channel,json=notificationChannel,proto3" json:"notification_channel,omitempty"`
+	// Typed scheduled-task metadata. Optional, and only meaningful on
+	// capabilities of type "scheduled_task.v1". A host that predates the field
+	// ignores it only if it drops unknown fields wherever it reads the
+	// manifest. Prairie hosts built before Prairie-Server/prairie-server#2502 don't, and
+	// refuse to install or start a plugin that sets it (see
+	// docs/scheduled-task.md).
+	ScheduledTask *ScheduledTaskDescriptor `protobuf:"bytes,14,opt,name=scheduled_task,json=scheduledTask,proto3" json:"scheduled_task,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1106,6 +1116,210 @@ func (x *CapabilityDescriptor) GetRequestRouter() *RequestRouterDescriptor {
 	return nil
 }
 
+func (x *CapabilityDescriptor) GetNotificationChannel() *NotificationChannelDescriptor {
+	if x != nil {
+		return x.NotificationChannel
+	}
+	return nil
+}
+
+func (x *CapabilityDescriptor) GetScheduledTask() *ScheduledTaskDescriptor {
+	if x != nil {
+		return x.ScheduledTask
+	}
+	return nil
+}
+
+// NotificationChannelDescriptor declares the kind of destination a
+// notification_channel.v1 capability provides. The host lists it without
+// starting the plugin.
+type NotificationChannelDescriptor struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Name of the destination kind, shown when adding one, such as "Pushover".
+	DisplayName string `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	// One or two sentences on what the destination is and what it needs.
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// The settings form for one destination: a JSON schema and an admin_form,
+	// validated like any ConfigSchema. Every value is stored encrypted. Fields
+	// marked secret are write-only: the host never returns them.
+	DestinationSchema *ConfigSchema `protobuf:"bytes,3,opt,name=destination_schema,json=destinationSchema,proto3" json:"destination_schema,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *NotificationChannelDescriptor) Reset() {
+	*x = NotificationChannelDescriptor{}
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotificationChannelDescriptor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotificationChannelDescriptor) ProtoMessage() {}
+
+func (x *NotificationChannelDescriptor) ProtoReflect() protoreflect.Message {
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NotificationChannelDescriptor.ProtoReflect.Descriptor instead.
+func (*NotificationChannelDescriptor) Descriptor() ([]byte, []int) {
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *NotificationChannelDescriptor) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *NotificationChannelDescriptor) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *NotificationChannelDescriptor) GetDestinationSchema() *ConfigSchema {
+	if x != nil {
+		return x.DestinationSchema
+	}
+	return nil
+}
+
+// ScheduledTaskDescriptor describes a scheduled_task.v1 capability.
+type ScheduledTaskDescriptor struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The schedule the host uses until an administrator sets one. Without it,
+	// a host runs the task once each time it starts.
+	DefaultTrigger *ScheduledTaskTrigger `protobuf:"bytes,1,opt,name=default_trigger,json=defaultTrigger,proto3" json:"default_trigger,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ScheduledTaskDescriptor) Reset() {
+	*x = ScheduledTaskDescriptor{}
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScheduledTaskDescriptor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScheduledTaskDescriptor) ProtoMessage() {}
+
+func (x *ScheduledTaskDescriptor) ProtoReflect() protoreflect.Message {
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScheduledTaskDescriptor.ProtoReflect.Descriptor instead.
+func (*ScheduledTaskDescriptor) Descriptor() ([]byte, []int) {
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ScheduledTaskDescriptor) GetDefaultTrigger() *ScheduledTaskTrigger {
+	if x != nil {
+		return x.DefaultTrigger
+	}
+	return nil
+}
+
+// ScheduledTaskTrigger is one schedule for a scheduled task.
+type ScheduledTaskTrigger struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// "interval", "daily", "weekly" or "startup". The vocabulary is open: a
+	// host that knows default_trigger uses its own default schedule for a type
+	// it doesn't know.
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// For "interval": milliseconds between runs, at least 60000.
+	IntervalMs int64 `protobuf:"varint,2,opt,name=interval_ms,json=intervalMs,proto3" json:"interval_ms,omitempty"`
+	// For "daily" and "weekly": "HH:MM", 24-hour, in the server's local time.
+	TimeOfDay string `protobuf:"bytes,3,opt,name=time_of_day,json=timeOfDay,proto3" json:"time_of_day,omitempty"`
+	// For "weekly": 0 (Sunday) to 6 (Saturday).
+	DayOfWeek     int32 `protobuf:"varint,4,opt,name=day_of_week,json=dayOfWeek,proto3" json:"day_of_week,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScheduledTaskTrigger) Reset() {
+	*x = ScheduledTaskTrigger{}
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScheduledTaskTrigger) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScheduledTaskTrigger) ProtoMessage() {}
+
+func (x *ScheduledTaskTrigger) ProtoReflect() protoreflect.Message {
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScheduledTaskTrigger.ProtoReflect.Descriptor instead.
+func (*ScheduledTaskTrigger) Descriptor() ([]byte, []int) {
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ScheduledTaskTrigger) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *ScheduledTaskTrigger) GetIntervalMs() int64 {
+	if x != nil {
+		return x.IntervalMs
+	}
+	return 0
+}
+
+func (x *ScheduledTaskTrigger) GetTimeOfDay() string {
+	if x != nil {
+		return x.TimeOfDay
+	}
+	return ""
+}
+
+func (x *ScheduledTaskTrigger) GetDayOfWeek() int32 {
+	if x != nil {
+		return x.DayOfWeek
+	}
+	return 0
+}
+
 // PluginPresentation describes a plugin for server operators and links them to
 // its publisher, source, support, and release history. These values are
 // self-declared by the plugin and never determine catalog approval.
@@ -1128,7 +1342,7 @@ type PluginPresentation struct {
 
 func (x *PluginPresentation) Reset() {
 	*x = PluginPresentation{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1140,7 +1354,7 @@ func (x *PluginPresentation) String() string {
 func (*PluginPresentation) ProtoMessage() {}
 
 func (x *PluginPresentation) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[12]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1153,7 +1367,7 @@ func (x *PluginPresentation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginPresentation.ProtoReflect.Descriptor instead.
 func (*PluginPresentation) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{12}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *PluginPresentation) GetDisplayName() string {
@@ -1269,7 +1483,7 @@ type PluginManifest struct {
 
 func (x *PluginManifest) Reset() {
 	*x = PluginManifest{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1281,7 +1495,7 @@ func (x *PluginManifest) String() string {
 func (*PluginManifest) ProtoMessage() {}
 
 func (x *PluginManifest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[13]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1294,7 +1508,7 @@ func (x *PluginManifest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginManifest.ProtoReflect.Descriptor instead.
 func (*PluginManifest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{13}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *PluginManifest) GetPluginId() string {
@@ -1403,7 +1617,7 @@ type GetManifestRequest struct {
 
 func (x *GetManifestRequest) Reset() {
 	*x = GetManifestRequest{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1415,7 +1629,7 @@ func (x *GetManifestRequest) String() string {
 func (*GetManifestRequest) ProtoMessage() {}
 
 func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[14]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1428,7 +1642,7 @@ func (x *GetManifestRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestRequest.ProtoReflect.Descriptor instead.
 func (*GetManifestRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{14}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{17}
 }
 
 type GetManifestResponse struct {
@@ -1440,7 +1654,7 @@ type GetManifestResponse struct {
 
 func (x *GetManifestResponse) Reset() {
 	*x = GetManifestResponse{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1452,7 +1666,7 @@ func (x *GetManifestResponse) String() string {
 func (*GetManifestResponse) ProtoMessage() {}
 
 func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[15]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1465,7 +1679,7 @@ func (x *GetManifestResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetManifestResponse.ProtoReflect.Descriptor instead.
 func (*GetManifestResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{15}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *GetManifestResponse) GetManifest() *PluginManifest {
@@ -1484,7 +1698,7 @@ type ConfigureRequest struct {
 
 func (x *ConfigureRequest) Reset() {
 	*x = ConfigureRequest{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[16]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1496,7 +1710,7 @@ func (x *ConfigureRequest) String() string {
 func (*ConfigureRequest) ProtoMessage() {}
 
 func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[16]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1509,7 +1723,7 @@ func (x *ConfigureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureRequest.ProtoReflect.Descriptor instead.
 func (*ConfigureRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{16}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ConfigureRequest) GetConfig() []*ConfigEntry {
@@ -1527,7 +1741,7 @@ type ConfigureResponse struct {
 
 func (x *ConfigureResponse) Reset() {
 	*x = ConfigureResponse{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[17]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1539,7 +1753,7 @@ func (x *ConfigureResponse) String() string {
 func (*ConfigureResponse) ProtoMessage() {}
 
 func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[17]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1552,7 +1766,7 @@ func (x *ConfigureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConfigureResponse.ProtoReflect.Descriptor instead.
 func (*ConfigureResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{17}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{20}
 }
 
 type BindHostBrokerRequest struct {
@@ -1564,7 +1778,7 @@ type BindHostBrokerRequest struct {
 
 func (x *BindHostBrokerRequest) Reset() {
 	*x = BindHostBrokerRequest{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[18]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1576,7 +1790,7 @@ func (x *BindHostBrokerRequest) String() string {
 func (*BindHostBrokerRequest) ProtoMessage() {}
 
 func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[18]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1589,7 +1803,7 @@ func (x *BindHostBrokerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerRequest.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerRequest) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{18}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *BindHostBrokerRequest) GetBrokerId() uint32 {
@@ -1607,7 +1821,7 @@ type BindHostBrokerResponse struct {
 
 func (x *BindHostBrokerResponse) Reset() {
 	*x = BindHostBrokerResponse{}
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[19]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1619,7 +1833,7 @@ func (x *BindHostBrokerResponse) String() string {
 func (*BindHostBrokerResponse) ProtoMessage() {}
 
 func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prairie_plugin_v1_common_proto_msgTypes[19]
+	mi := &file_prairie_plugin_v1_common_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1632,47 +1846,47 @@ func (x *BindHostBrokerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BindHostBrokerResponse.ProtoReflect.Descriptor instead.
 func (*BindHostBrokerResponse) Descriptor() ([]byte, []int) {
-	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{19}
+	return file_prairie_plugin_v1_common_proto_rawDescGZIP(), []int{22}
 }
 
 var File_prairie_plugin_v1_common_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\n" +
-	"\x1eprairie/plugin/v1/common.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a/prairie/plugin/v1/network_access_provider.proto\x1a&prairie/plugin/v1/request_router.proto\x1a+prairie/plugin/v1/watch_sync_provider.proto\"7\n" +
+	"\x1bprairie/plugin/v1/common.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a,prairie/plugin/v1/network_access_provider.proto\x1a#prairie/plugin/v1/request_router.proto\x1a(prairie/plugin/v1/watch_sync_provider.proto\"7\n" +
 	"\x11SupportedPlatform\x12\x0e\n" +
 	"\x02os\x18\x01 \x01(\tR\x02os\x12\x12\n" +
-	"\x04arch\x18\x02 \x01(\tR\x04arch\"\xdc\x01\n" +
+	"\x04arch\x18\x02 \x01(\tR\x04arch\"\xd9\x01\n" +
 	"\fConfigSchema\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1f\n" +
 	"\vjson_schema\x18\x04 \x01(\tR\n" +
 	"jsonSchema\x12\x1a\n" +
-	"\brequired\x18\x05 \x01(\bR\brequired\x12E\n" +
+	"\brequired\x18\x05 \x01(\bR\brequired\x12B\n" +
 	"\n" +
-	"admin_form\x18\x06 \x01(\v2&.prairie.plugin.v1.AdminFormDescriptorR\tadminForm\"_\n" +
+	"admin_form\x18\x06 \x01(\v2#.prairie.plugin.v1.AdminFormDescriptorR\tadminForm\"_\n" +
 	"\x0fAdminFormOption\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"\x85\x05\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\"\xf9\x04\n" +
 	"\x0eAdminFormField\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12=\n" +
-	"\acontrol\x18\x04 \x01(\x0e2#.prairie.plugin.v1.AdminFormControlR\acontrol\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12:\n" +
+	"\acontrol\x18\x04 \x01(\x0e2 .prairie.plugin.v1.AdminFormControlR\acontrol\x12 \n" +
 	"\vplaceholder\x18\x05 \x01(\tR\vplaceholder\x12\x1a\n" +
 	"\brequired\x18\x06 \x01(\bR\brequired\x12\x16\n" +
 	"\x06secret\x18\a \x01(\bR\x06secret\x12\x1c\n" +
 	"\tmultiline\x18\b \x01(\bR\tmultiline\x12;\n" +
-	"\rdefault_value\x18\t \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\x12<\n" +
+	"\rdefault_value\x18\t \x01(\v2\x16.google.protobuf.ValueR\fdefaultValue\x129\n" +
 	"\aoptions\x18\n" +
-	" \x03(\v2\".prairie.plugin.v1.AdminFormOptionR\aoptions\x12\x12\n" +
+	" \x03(\v2\x1f.prairie.plugin.v1.AdminFormOptionR\aoptions\x12\x12\n" +
 	"\x04rows\x18\v \x01(\x05R\x04rows\x12'\n" +
-	"\x0fdynamic_options\x18\f \x01(\bR\x0edynamicOptions\x12B\n" +
-	"\tshow_when\x18\r \x03(\v2%.prairie.plugin.v1.AdminFormConditionR\bshowWhen\x12F\n" +
+	"\x0fdynamic_options\x18\f \x01(\bR\x0edynamicOptions\x12?\n" +
+	"\tshow_when\x18\r \x03(\v2\".prairie.plugin.v1.AdminFormConditionR\bshowWhen\x12C\n" +
 	"\n" +
-	"validation\x18\x0e \x01(\v2&.prairie.plugin.v1.AdminFormValidationR\n" +
+	"validation\x18\x0e \x01(\v2#.prairie.plugin.v1.AdminFormValidationR\n" +
 	"validation\x122\n" +
 	"\x15exclusive_group_field\x18\x0f \x01(\tR\x13exclusiveGroupField\"B\n" +
 	"\x12AdminFormCondition\x12\x14\n" +
@@ -1687,7 +1901,7 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\n" +
 	"min_length\x18\x06 \x01(\x05R\tminLength\x12\x1d\n" +
 	"\n" +
-	"max_length\x18\a \x01(\x05R\tmaxLength\"\x8e\x02\n" +
+	"max_length\x18\a \x01(\x05R\tmaxLength\"\x8b\x02\n" +
 	"\x10AdminFormSection\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
@@ -1695,12 +1909,12 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\vcollapsible\x18\x04 \x01(\bR\vcollapsible\x12+\n" +
 	"\x11collapsed_default\x18\x05 \x01(\bR\x10collapsedDefault\x12\x1d\n" +
 	"\n" +
-	"field_keys\x18\x06 \x03(\tR\tfieldKeys\x12B\n" +
-	"\tshow_when\x18\a \x03(\v2%.prairie.plugin.v1.AdminFormConditionR\bshowWhen\"\xb4\x01\n" +
-	"\x13AdminFormDescriptor\x129\n" +
-	"\x06fields\x18\x01 \x03(\v2!.prairie.plugin.v1.AdminFormFieldR\x06fields\x12!\n" +
-	"\fsubmit_label\x18\x02 \x01(\tR\vsubmitLabel\x12?\n" +
-	"\bsections\x18\x03 \x03(\v2#.prairie.plugin.v1.AdminFormSectionR\bsections\"N\n" +
+	"field_keys\x18\x06 \x03(\tR\tfieldKeys\x12?\n" +
+	"\tshow_when\x18\a \x03(\v2\".prairie.plugin.v1.AdminFormConditionR\bshowWhen\"\xae\x01\n" +
+	"\x13AdminFormDescriptor\x126\n" +
+	"\x06fields\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.AdminFormFieldR\x06fields\x12!\n" +
+	"\fsubmit_label\x18\x02 \x01(\tR\vsubmitLabel\x12<\n" +
+	"\bsections\x18\x03 \x03(\v2 .prairie.plugin.v1.AdminFormSectionR\bsections\"N\n" +
 	"\vConfigEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
 	"\x05value\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x05value\"\xfe\x01\n" +
@@ -1716,22 +1930,36 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\rPackagedAsset\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12!\n" +
 	"\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x1c\n" +
-	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\xf9\x04\n" +
+	"\tintegrity\x18\x03 \x01(\tR\tintegrity\"\x9f\x06\n" +
 	"\x14CapabilityDescriptor\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12$\n" +
-	"\rsubscriptions\x18\x05 \x03(\tR\rsubscriptions\x12D\n" +
-	"\rconfig_schema\x18\x06 \x03(\v2\x1f.prairie.plugin.v1.ConfigSchemaR\fconfigSchema\x123\n" +
+	"\rsubscriptions\x18\x05 \x03(\tR\rsubscriptions\x12A\n" +
+	"\rconfig_schema\x18\x06 \x03(\v2\x1c.prairie.plugin.v1.ConfigSchemaR\fconfigSchema\x123\n" +
 	"\bmetadata\x18\a \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1d\n" +
 	"\n" +
 	"auth_modes\x18\b \x03(\tR\tauthModes\x12\x19\n" +
-	"\bicon_url\x18\t \x01(\tR\aiconUrl\x12^\n" +
+	"\bicon_url\x18\t \x01(\tR\aiconUrl\x12[\n" +
 	"\x13watch_sync_provider\x18\n" +
-	" \x01(\v2..prairie.plugin.v1.WatchSyncProviderDescriptorR\x11watchSyncProvider\x12j\n" +
-	"\x17network_access_provider\x18\v \x01(\v22.prairie.plugin.v1.NetworkAccessProviderDescriptorR\x15networkAccessProvider\x12Q\n" +
-	"\x0erequest_router\x18\f \x01(\v2*.prairie.plugin.v1.RequestRouterDescriptorR\rrequestRouter\"\xa2\x03\n" +
+	" \x01(\v2+.prairie.plugin.v1.WatchSyncProviderDescriptorR\x11watchSyncProvider\x12g\n" +
+	"\x17network_access_provider\x18\v \x01(\v2/.prairie.plugin.v1.NetworkAccessProviderDescriptorR\x15networkAccessProvider\x12N\n" +
+	"\x0erequest_router\x18\f \x01(\v2'.prairie.plugin.v1.RequestRouterDescriptorR\rrequestRouter\x12`\n" +
+	"\x14notification_channel\x18\r \x01(\v2-.prairie.plugin.v1.NotificationChannelDescriptorR\x13notificationChannel\x12N\n" +
+	"\x0escheduled_task\x18\x0e \x01(\v2'.prairie.plugin.v1.ScheduledTaskDescriptorR\rscheduledTask\"\xb1\x01\n" +
+	"\x1dNotificationChannelDescriptor\x12!\n" +
+	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12K\n" +
+	"\x12destination_schema\x18\x03 \x01(\v2\x1c.prairie.plugin.v1.ConfigSchemaR\x11destinationSchema\"h\n" +
+	"\x17ScheduledTaskDescriptor\x12M\n" +
+	"\x0fdefault_trigger\x18\x01 \x01(\v2$.prairie.plugin.v1.ScheduledTaskTriggerR\x0edefaultTrigger\"\x8b\x01\n" +
+	"\x14ScheduledTaskTrigger\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x1f\n" +
+	"\vinterval_ms\x18\x02 \x01(\x03R\n" +
+	"intervalMs\x12\x1e\n" +
+	"\vtime_of_day\x18\x03 \x01(\tR\ttimeOfDay\x12\x1e\n" +
+	"\vday_of_week\x18\x04 \x01(\x05R\tdayOfWeek\"\xa2\x03\n" +
 	"\x12PluginPresentation\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12\x18\n" +
 	"\asummary\x18\x02 \x01(\tR\asummary\x121\n" +
@@ -1746,29 +1974,29 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\x0epublisher_name\x18\t \x01(\tR\rpublisherName\x12#\n" +
 	"\rpublisher_url\x18\n" +
 	" \x01(\tR\fpublisherUrl\x12!\n" +
-	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\x9b\x06\n" +
+	"\flicense_spdx\x18\v \x01(\tR\vlicenseSpdx\"\x80\x06\n" +
 	"\x0ePluginManifest\x12\x1b\n" +
 	"\tplugin_id\x18\x01 \x01(\tR\bpluginId\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12\x1a\n" +
-	"\bchecksum\x18\x03 \x01(\tR\bchecksum\x12.\n" +
-	"\x13prairie_api_version\x18\x04 \x01(\tR\x11prairieApiVersion\x12U\n" +
-	"\x13supported_platforms\x18\x05 \x03(\v2$.prairie.plugin.v1.SupportedPlatformR\x12supportedPlatforms\x12K\n" +
-	"\fcapabilities\x18\x06 \x03(\v2'.prairie.plugin.v1.CapabilityDescriptorR\fcapabilities\x12Q\n" +
-	"\x14global_config_schema\x18\a \x03(\v2\x1f.prairie.plugin.v1.ConfigSchemaR\x12globalConfigSchema\x12M\n" +
-	"\x12user_config_schema\x18\b \x03(\v2\x1f.prairie.plugin.v1.ConfigSchemaR\x10userConfigSchema\x12G\n" +
-	"\vhttp_routes\x18\t \x03(\v2&.prairie.plugin.v1.HttpRouteDescriptorR\n" +
-	"httpRoutes\x128\n" +
+	"\bchecksum\x18\x03 \x01(\tR\bchecksum\x12(\n" +
+	"\x10prairie_api_version\x18\x04 \x01(\tR\x0eprairieApiVersion\x12R\n" +
+	"\x13supported_platforms\x18\x05 \x03(\v2!.prairie.plugin.v1.SupportedPlatformR\x12supportedPlatforms\x12H\n" +
+	"\fcapabilities\x18\x06 \x03(\v2$.prairie.plugin.v1.CapabilityDescriptorR\fcapabilities\x12N\n" +
+	"\x14global_config_schema\x18\a \x03(\v2\x1c.prairie.plugin.v1.ConfigSchemaR\x12globalConfigSchema\x12J\n" +
+	"\x12user_config_schema\x18\b \x03(\v2\x1c.prairie.plugin.v1.ConfigSchemaR\x10userConfigSchema\x12D\n" +
+	"\vhttp_routes\x18\t \x03(\v2#.prairie.plugin.v1.HttpRouteDescriptorR\n" +
+	"httpRoutes\x125\n" +
 	"\x06assets\x18\n" +
-	" \x03(\v2 .prairie.plugin.v1.PackagedAssetR\x06assets\x123\n" +
+	" \x03(\v2\x1d.prairie.plugin.v1.PackagedAssetR\x06assets\x123\n" +
 	"\bmetadata\x18\v \x01(\v2\x17.google.protobuf.StructR\bmetadata\x12\x1a\n" +
-	"\bcategory\x18\f \x01(\tR\bcategory\x12I\n" +
-	"\fpresentation\x18\r \x01(\v2%.prairie.plugin.v1.PluginPresentationR\fpresentation\x12!\n" +
+	"\bcategory\x18\f \x01(\tR\bcategory\x12F\n" +
+	"\fpresentation\x18\r \x01(\v2\".prairie.plugin.v1.PluginPresentationR\fpresentation\x12!\n" +
 	"\fstay_running\x18\x0e \x01(\bR\vstayRunning\"\x14\n" +
-	"\x12GetManifestRequest\"T\n" +
-	"\x13GetManifestResponse\x12=\n" +
-	"\bmanifest\x18\x01 \x01(\v2!.prairie.plugin.v1.PluginManifestR\bmanifest\"J\n" +
-	"\x10ConfigureRequest\x126\n" +
-	"\x06config\x18\x01 \x03(\v2\x1e.prairie.plugin.v1.ConfigEntryR\x06config\"\x13\n" +
+	"\x12GetManifestRequest\"Q\n" +
+	"\x13GetManifestResponse\x12:\n" +
+	"\bmanifest\x18\x01 \x01(\v2\x1e.prairie.plugin.v1.PluginManifestR\bmanifest\"G\n" +
+	"\x10ConfigureRequest\x123\n" +
+	"\x06config\x18\x01 \x03(\v2\x1b.prairie.plugin.v1.ConfigEntryR\x06config\"\x13\n" +
 	"\x11ConfigureResponse\"4\n" +
 	"\x15BindHostBrokerRequest\x12\x1b\n" +
 	"\tbroker_id\x18\x01 \x01(\rR\bbrokerId\"\x18\n" +
@@ -1781,11 +2009,11 @@ const file_prairie_plugin_v1_common_proto_rawDesc = "" +
 	"\x19ADMIN_FORM_CONTROL_NUMBER\x10\x04\x12\x1d\n" +
 	"\x19ADMIN_FORM_CONTROL_SWITCH\x10\x05\x12\x1d\n" +
 	"\x19ADMIN_FORM_CONTROL_SELECT\x10\x06\x12#\n" +
-	"\x1fADMIN_FORM_CONTROL_MULTI_SELECT\x10\a2\xa6\x02\n" +
-	"\aRuntime\x12\\\n" +
-	"\vGetManifest\x12%.prairie.plugin.v1.GetManifestRequest\x1a&.prairie.plugin.v1.GetManifestResponse\x12V\n" +
-	"\tConfigure\x12#.prairie.plugin.v1.ConfigureRequest\x1a$.prairie.plugin.v1.ConfigureResponse\x12e\n" +
-	"\x0eBindHostBroker\x12(.prairie.plugin.v1.BindHostBrokerRequest\x1a).prairie.plugin.v1.BindHostBrokerResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"\x1fADMIN_FORM_CONTROL_MULTI_SELECT\x10\a2\x94\x02\n" +
+	"\aRuntime\x12V\n" +
+	"\vGetManifest\x12\".prairie.plugin.v1.GetManifestRequest\x1a#.prairie.plugin.v1.GetManifestResponse\x12P\n" +
+	"\tConfigure\x12 .prairie.plugin.v1.ConfigureRequest\x1a!.prairie.plugin.v1.ConfigureResponse\x12_\n" +
+	"\x0eBindHostBroker\x12%.prairie.plugin.v1.BindHostBrokerRequest\x1a&.prairie.plugin.v1.BindHostBrokerResponseBPZNgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_common_proto_rawDescOnce sync.Once
@@ -1800,7 +2028,7 @@ func file_prairie_plugin_v1_common_proto_rawDescGZIP() []byte {
 }
 
 var file_prairie_plugin_v1_common_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_prairie_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_prairie_plugin_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_prairie_plugin_v1_common_proto_goTypes = []any{
 	(AdminFormControl)(0),                   // 0: prairie.plugin.v1.AdminFormControl
 	(*SupportedPlatform)(nil),               // 1: prairie.plugin.v1.SupportedPlatform
@@ -1815,57 +2043,64 @@ var file_prairie_plugin_v1_common_proto_goTypes = []any{
 	(*HttpRouteDescriptor)(nil),             // 10: prairie.plugin.v1.HttpRouteDescriptor
 	(*PackagedAsset)(nil),                   // 11: prairie.plugin.v1.PackagedAsset
 	(*CapabilityDescriptor)(nil),            // 12: prairie.plugin.v1.CapabilityDescriptor
-	(*PluginPresentation)(nil),              // 13: prairie.plugin.v1.PluginPresentation
-	(*PluginManifest)(nil),                  // 14: prairie.plugin.v1.PluginManifest
-	(*GetManifestRequest)(nil),              // 15: prairie.plugin.v1.GetManifestRequest
-	(*GetManifestResponse)(nil),             // 16: prairie.plugin.v1.GetManifestResponse
-	(*ConfigureRequest)(nil),                // 17: prairie.plugin.v1.ConfigureRequest
-	(*ConfigureResponse)(nil),               // 18: prairie.plugin.v1.ConfigureResponse
-	(*BindHostBrokerRequest)(nil),           // 19: prairie.plugin.v1.BindHostBrokerRequest
-	(*BindHostBrokerResponse)(nil),          // 20: prairie.plugin.v1.BindHostBrokerResponse
-	(*structpb.Value)(nil),                  // 21: google.protobuf.Value
-	(*structpb.Struct)(nil),                 // 22: google.protobuf.Struct
-	(*WatchSyncProviderDescriptor)(nil),     // 23: prairie.plugin.v1.WatchSyncProviderDescriptor
-	(*NetworkAccessProviderDescriptor)(nil), // 24: prairie.plugin.v1.NetworkAccessProviderDescriptor
-	(*RequestRouterDescriptor)(nil),         // 25: prairie.plugin.v1.RequestRouterDescriptor
+	(*NotificationChannelDescriptor)(nil),   // 13: prairie.plugin.v1.NotificationChannelDescriptor
+	(*ScheduledTaskDescriptor)(nil),         // 14: prairie.plugin.v1.ScheduledTaskDescriptor
+	(*ScheduledTaskTrigger)(nil),            // 15: prairie.plugin.v1.ScheduledTaskTrigger
+	(*PluginPresentation)(nil),              // 16: prairie.plugin.v1.PluginPresentation
+	(*PluginManifest)(nil),                  // 17: prairie.plugin.v1.PluginManifest
+	(*GetManifestRequest)(nil),              // 18: prairie.plugin.v1.GetManifestRequest
+	(*GetManifestResponse)(nil),             // 19: prairie.plugin.v1.GetManifestResponse
+	(*ConfigureRequest)(nil),                // 20: prairie.plugin.v1.ConfigureRequest
+	(*ConfigureResponse)(nil),               // 21: prairie.plugin.v1.ConfigureResponse
+	(*BindHostBrokerRequest)(nil),           // 22: prairie.plugin.v1.BindHostBrokerRequest
+	(*BindHostBrokerResponse)(nil),          // 23: prairie.plugin.v1.BindHostBrokerResponse
+	(*structpb.Value)(nil),                  // 24: google.protobuf.Value
+	(*structpb.Struct)(nil),                 // 25: google.protobuf.Struct
+	(*WatchSyncProviderDescriptor)(nil),     // 26: prairie.plugin.v1.WatchSyncProviderDescriptor
+	(*NetworkAccessProviderDescriptor)(nil), // 27: prairie.plugin.v1.NetworkAccessProviderDescriptor
+	(*RequestRouterDescriptor)(nil),         // 28: prairie.plugin.v1.RequestRouterDescriptor
 }
 var file_prairie_plugin_v1_common_proto_depIdxs = []int32{
 	8,  // 0: prairie.plugin.v1.ConfigSchema.admin_form:type_name -> prairie.plugin.v1.AdminFormDescriptor
 	0,  // 1: prairie.plugin.v1.AdminFormField.control:type_name -> prairie.plugin.v1.AdminFormControl
-	21, // 2: prairie.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
+	24, // 2: prairie.plugin.v1.AdminFormField.default_value:type_name -> google.protobuf.Value
 	3,  // 3: prairie.plugin.v1.AdminFormField.options:type_name -> prairie.plugin.v1.AdminFormOption
 	5,  // 4: prairie.plugin.v1.AdminFormField.show_when:type_name -> prairie.plugin.v1.AdminFormCondition
 	6,  // 5: prairie.plugin.v1.AdminFormField.validation:type_name -> prairie.plugin.v1.AdminFormValidation
 	5,  // 6: prairie.plugin.v1.AdminFormSection.show_when:type_name -> prairie.plugin.v1.AdminFormCondition
 	4,  // 7: prairie.plugin.v1.AdminFormDescriptor.fields:type_name -> prairie.plugin.v1.AdminFormField
 	7,  // 8: prairie.plugin.v1.AdminFormDescriptor.sections:type_name -> prairie.plugin.v1.AdminFormSection
-	22, // 9: prairie.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
+	25, // 9: prairie.plugin.v1.ConfigEntry.value:type_name -> google.protobuf.Struct
 	2,  // 10: prairie.plugin.v1.CapabilityDescriptor.config_schema:type_name -> prairie.plugin.v1.ConfigSchema
-	22, // 11: prairie.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
-	23, // 12: prairie.plugin.v1.CapabilityDescriptor.watch_sync_provider:type_name -> prairie.plugin.v1.WatchSyncProviderDescriptor
-	24, // 13: prairie.plugin.v1.CapabilityDescriptor.network_access_provider:type_name -> prairie.plugin.v1.NetworkAccessProviderDescriptor
-	25, // 14: prairie.plugin.v1.CapabilityDescriptor.request_router:type_name -> prairie.plugin.v1.RequestRouterDescriptor
-	1,  // 15: prairie.plugin.v1.PluginManifest.supported_platforms:type_name -> prairie.plugin.v1.SupportedPlatform
-	12, // 16: prairie.plugin.v1.PluginManifest.capabilities:type_name -> prairie.plugin.v1.CapabilityDescriptor
-	2,  // 17: prairie.plugin.v1.PluginManifest.global_config_schema:type_name -> prairie.plugin.v1.ConfigSchema
-	2,  // 18: prairie.plugin.v1.PluginManifest.user_config_schema:type_name -> prairie.plugin.v1.ConfigSchema
-	10, // 19: prairie.plugin.v1.PluginManifest.http_routes:type_name -> prairie.plugin.v1.HttpRouteDescriptor
-	11, // 20: prairie.plugin.v1.PluginManifest.assets:type_name -> prairie.plugin.v1.PackagedAsset
-	22, // 21: prairie.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
-	13, // 22: prairie.plugin.v1.PluginManifest.presentation:type_name -> prairie.plugin.v1.PluginPresentation
-	14, // 23: prairie.plugin.v1.GetManifestResponse.manifest:type_name -> prairie.plugin.v1.PluginManifest
-	9,  // 24: prairie.plugin.v1.ConfigureRequest.config:type_name -> prairie.plugin.v1.ConfigEntry
-	15, // 25: prairie.plugin.v1.Runtime.GetManifest:input_type -> prairie.plugin.v1.GetManifestRequest
-	17, // 26: prairie.plugin.v1.Runtime.Configure:input_type -> prairie.plugin.v1.ConfigureRequest
-	19, // 27: prairie.plugin.v1.Runtime.BindHostBroker:input_type -> prairie.plugin.v1.BindHostBrokerRequest
-	16, // 28: prairie.plugin.v1.Runtime.GetManifest:output_type -> prairie.plugin.v1.GetManifestResponse
-	18, // 29: prairie.plugin.v1.Runtime.Configure:output_type -> prairie.plugin.v1.ConfigureResponse
-	20, // 30: prairie.plugin.v1.Runtime.BindHostBroker:output_type -> prairie.plugin.v1.BindHostBrokerResponse
-	28, // [28:31] is the sub-list for method output_type
-	25, // [25:28] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	25, // 11: prairie.plugin.v1.CapabilityDescriptor.metadata:type_name -> google.protobuf.Struct
+	26, // 12: prairie.plugin.v1.CapabilityDescriptor.watch_sync_provider:type_name -> prairie.plugin.v1.WatchSyncProviderDescriptor
+	27, // 13: prairie.plugin.v1.CapabilityDescriptor.network_access_provider:type_name -> prairie.plugin.v1.NetworkAccessProviderDescriptor
+	28, // 14: prairie.plugin.v1.CapabilityDescriptor.request_router:type_name -> prairie.plugin.v1.RequestRouterDescriptor
+	13, // 15: prairie.plugin.v1.CapabilityDescriptor.notification_channel:type_name -> prairie.plugin.v1.NotificationChannelDescriptor
+	14, // 16: prairie.plugin.v1.CapabilityDescriptor.scheduled_task:type_name -> prairie.plugin.v1.ScheduledTaskDescriptor
+	2,  // 17: prairie.plugin.v1.NotificationChannelDescriptor.destination_schema:type_name -> prairie.plugin.v1.ConfigSchema
+	15, // 18: prairie.plugin.v1.ScheduledTaskDescriptor.default_trigger:type_name -> prairie.plugin.v1.ScheduledTaskTrigger
+	1,  // 19: prairie.plugin.v1.PluginManifest.supported_platforms:type_name -> prairie.plugin.v1.SupportedPlatform
+	12, // 20: prairie.plugin.v1.PluginManifest.capabilities:type_name -> prairie.plugin.v1.CapabilityDescriptor
+	2,  // 21: prairie.plugin.v1.PluginManifest.global_config_schema:type_name -> prairie.plugin.v1.ConfigSchema
+	2,  // 22: prairie.plugin.v1.PluginManifest.user_config_schema:type_name -> prairie.plugin.v1.ConfigSchema
+	10, // 23: prairie.plugin.v1.PluginManifest.http_routes:type_name -> prairie.plugin.v1.HttpRouteDescriptor
+	11, // 24: prairie.plugin.v1.PluginManifest.assets:type_name -> prairie.plugin.v1.PackagedAsset
+	25, // 25: prairie.plugin.v1.PluginManifest.metadata:type_name -> google.protobuf.Struct
+	16, // 26: prairie.plugin.v1.PluginManifest.presentation:type_name -> prairie.plugin.v1.PluginPresentation
+	17, // 27: prairie.plugin.v1.GetManifestResponse.manifest:type_name -> prairie.plugin.v1.PluginManifest
+	9,  // 28: prairie.plugin.v1.ConfigureRequest.config:type_name -> prairie.plugin.v1.ConfigEntry
+	18, // 29: prairie.plugin.v1.Runtime.GetManifest:input_type -> prairie.plugin.v1.GetManifestRequest
+	20, // 30: prairie.plugin.v1.Runtime.Configure:input_type -> prairie.plugin.v1.ConfigureRequest
+	22, // 31: prairie.plugin.v1.Runtime.BindHostBroker:input_type -> prairie.plugin.v1.BindHostBrokerRequest
+	19, // 32: prairie.plugin.v1.Runtime.GetManifest:output_type -> prairie.plugin.v1.GetManifestResponse
+	21, // 33: prairie.plugin.v1.Runtime.Configure:output_type -> prairie.plugin.v1.ConfigureResponse
+	23, // 34: prairie.plugin.v1.Runtime.BindHostBroker:output_type -> prairie.plugin.v1.BindHostBrokerResponse
+	32, // [32:35] is the sub-list for method output_type
+	29, // [29:32] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_prairie_plugin_v1_common_proto_init() }
@@ -1882,7 +2117,7 @@ func file_prairie_plugin_v1_common_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prairie_plugin_v1_common_proto_rawDesc), len(file_prairie_plugin_v1_common_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   20,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

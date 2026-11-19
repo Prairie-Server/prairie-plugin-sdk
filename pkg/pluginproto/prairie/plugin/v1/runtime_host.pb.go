@@ -2148,7 +2148,16 @@ type ReadInstanceStateResponse struct {
 	// Stored value; empty when found is false.
 	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
 	// False when no value is stored under key in this instance's scope.
-	Found         bool `protobuf:"varint,2,opt,name=found,proto3" json:"found,omitempty"`
+	Found bool `protobuf:"varint,2,opt,name=found,proto3" json:"found,omitempty"`
+	// Version of the stored value: 1 after the first write, one more after
+	// each later write. 0 when found is false. Pass it as
+	// WriteInstanceStateRequest.expected_version to write only if no one else
+	// wrote the key since.
+	Version int64 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
+	// True when the host keeps versions and honors expected_version. Older
+	// hosts leave it false and ignore expected_version, writing
+	// unconditionally.
+	Versioned     bool `protobuf:"varint,4,opt,name=versioned,proto3" json:"versioned,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2197,14 +2206,32 @@ func (x *ReadInstanceStateResponse) GetFound() bool {
 	return false
 }
 
+func (x *ReadInstanceStateResponse) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *ReadInstanceStateResponse) GetVersioned() bool {
+	if x != nil {
+		return x.Versioned
+	}
+	return false
+}
+
 type WriteInstanceStateRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// State key, <= 256 bytes.
 	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	// Value to store, <= 256 KiB.
-	Value         []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	// When set, the host writes only if the key's current version equals it,
+	// and 0 means the key must not exist yet. Otherwise it fails with ABORTED
+	// and changes nothing. Unset writes unconditionally.
+	ExpectedVersion *int64 `protobuf:"varint,3,opt,name=expected_version,json=expectedVersion,proto3,oneof" json:"expected_version,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *WriteInstanceStateRequest) Reset() {
@@ -2251,8 +2278,17 @@ func (x *WriteInstanceStateRequest) GetValue() []byte {
 	return nil
 }
 
+func (x *WriteInstanceStateRequest) GetExpectedVersion() int64 {
+	if x != nil && x.ExpectedVersion != nil {
+		return *x.ExpectedVersion
+	}
+	return 0
+}
+
 type WriteInstanceStateResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Version of the value just written. Older hosts leave it 0.
+	Version       int64 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2285,6 +2321,13 @@ func (x *WriteInstanceStateResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use WriteInstanceStateResponse.ProtoReflect.Descriptor instead.
 func (*WriteInstanceStateResponse) Descriptor() ([]byte, []int) {
 	return file_prairie_plugin_v1_runtime_host_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *WriteInstanceStateResponse) GetVersion() int64 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
 }
 
 type ReportNetworkAccessStatusRequest struct {
@@ -2371,7 +2414,7 @@ var File_prairie_plugin_v1_runtime_host_proto protoreflect.FileDescriptor
 
 const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\n" +
-	"$prairie/plugin/v1/runtime_host.proto\x12\x11prairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1eprairie/plugin/v1/common.proto\x1a/prairie/plugin/v1/network_access_provider.proto\"g\n" +
+	"!prairie/plugin/v1/runtime_host.proto\x12\x0eprairie.plugin.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1bprairie/plugin/v1/common.proto\x1a,prairie/plugin/v1/network_access_provider.proto\"g\n" +
 	"\x13PublishEventRequest\x12\x1d\n" +
 	"\n" +
 	"event_name\x18\x01 \x01(\tR\teventName\x121\n" +
@@ -2389,7 +2432,7 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"event_name\x18\x02 \x01(\tR\teventName\x121\n" +
 	"\apayload\x18\x03 \x01(\v2\x17.google.protobuf.StructR\apayload\"$\n" +
 	"\"PublishEventToInstallationResponse\"\x14\n" +
-	"\x12GetHostInfoRequest\"\xd3\x02\n" +
+	"\x12GetHostInfoRequest\"\xd0\x02\n" +
 	"\x13GetHostInfoResponse\x12&\n" +
 	"\x0fpublic_base_url\x18\x01 \x01(\tR\rpublicBaseUrl\x12*\n" +
 	"\x11internal_base_url\x18\x02 \x01(\tR\x0finternalBaseUrl\x121\n" +
@@ -2397,16 +2440,16 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\thost_role\x18\x04 \x01(\tR\bhostRole\x12\x1b\n" +
 	"\thost_name\x18\x05 \x01(\tR\bhostName\x12\x17\n" +
 	"\anode_id\x18\x06 \x01(\x03R\x06nodeId\x12#\n" +
-	"\ringress_token\x18\a \x01(\tR\fingressToken\x12=\n" +
-	"\tlisteners\x18\b \x03(\v2\x1f.prairie.plugin.v1.HostListenerR\tlisteners\"_\n" +
+	"\ringress_token\x18\a \x01(\tR\fingressToken\x12:\n" +
+	"\tlisteners\x18\b \x03(\v2\x1c.prairie.plugin.v1.HostListenerR\tlisteners\"_\n" +
 	"\fHostListener\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
 	"\aaddress\x18\x02 \x01(\tR\aaddress\x12!\n" +
 	"\fdefault_port\x18\x03 \x01(\x05R\vdefaultPort\"/\n" +
 	"\x14ListLibrariesRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"Q\n" +
-	"\x15ListLibrariesResponse\x128\n" +
-	"\tlibraries\x18\x01 \x03(\v2\x1a.prairie.plugin.v1.LibraryR\tlibraries\"L\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"N\n" +
+	"\x15ListLibrariesResponse\x125\n" +
+	"\tlibraries\x18\x01 \x03(\v2\x17.prairie.plugin.v1.LibraryR\tlibraries\"L\n" +
 	"\aLibrary\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1d\n" +
@@ -2416,9 +2459,9 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\bprovider\x18\x01 \x01(\tR\bprovider\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x02 \x01(\tR\tmediaType\x12\x10\n" +
-	"\x03ids\x18\x03 \x03(\tR\x03ids\"X\n" +
-	"\x1aCheckMediaPresenceResponse\x12:\n" +
-	"\apresent\x18\x01 \x03(\v2 .prairie.plugin.v1.MediaPresenceR\apresent\"\x80\x01\n" +
+	"\x03ids\x18\x03 \x03(\tR\x03ids\"U\n" +
+	"\x1aCheckMediaPresenceResponse\x127\n" +
+	"\apresent\x18\x01 \x03(\v2\x1d.prairie.plugin.v1.MediaPresenceR\apresent\"\x80\x01\n" +
 	"\rMediaPresence\x12\x1f\n" +
 	"\vexternal_id\x18\x01 \x01(\tR\n" +
 	"externalId\x12\x19\n" +
@@ -2426,15 +2469,15 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\n" +
 	"library_id\x18\x03 \x01(\tR\tlibraryId\x12\x14\n" +
 	"\x05title\x18\x04 \x01(\tR\x05title\"\x1d\n" +
-	"\x1bListInstalledPluginsRequest\"\\\n" +
-	"\x1cListInstalledPluginsResponse\x12<\n" +
-	"\aplugins\x18\x01 \x03(\v2\".prairie.plugin.v1.InstalledPluginR\aplugins\"\xd8\x01\n" +
+	"\x1bListInstalledPluginsRequest\"Y\n" +
+	"\x1cListInstalledPluginsResponse\x129\n" +
+	"\aplugins\x18\x01 \x03(\v2\x1f.prairie.plugin.v1.InstalledPluginR\aplugins\"\xd5\x01\n" +
 	"\x0fInstalledPlugin\x12'\n" +
 	"\x0finstallation_id\x18\x01 \x01(\x03R\x0einstallationId\x12\x1b\n" +
 	"\tplugin_id\x18\x02 \x01(\tR\bpluginId\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\tR\aversion\x12\x18\n" +
-	"\aenabled\x18\x04 \x01(\bR\aenabled\x12K\n" +
-	"\fcapabilities\x18\x05 \x03(\v2'.prairie.plugin.v1.CapabilityDescriptorR\fcapabilities\"^\n" +
+	"\aenabled\x18\x04 \x01(\bR\aenabled\x12H\n" +
+	"\fcapabilities\x18\x05 \x03(\v2$.prairie.plugin.v1.CapabilityDescriptorR\fcapabilities\"^\n" +
 	"\x1bSetGlobalConfigEntryRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12-\n" +
 	"\x05value\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x05value\"\x1e\n" +
@@ -2455,9 +2498,9 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\tpage_size\x18\t \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\n" +
-	" \x01(\tR\tpageToken\"\x9e\x01\n" +
-	"\x18ListLibraryMediaResponse\x129\n" +
-	"\x05items\x18\x01 \x03(\v2#.prairie.plugin.v1.CatalogMediaItemR\x05items\x12&\n" +
+	" \x01(\tR\tpageToken\"\x9b\x01\n" +
+	"\x18ListLibraryMediaResponse\x126\n" +
+	"\x05items\x18\x01 \x03(\v2 .prairie.plugin.v1.CatalogMediaItemR\x05items\x12&\n" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\x12\x1f\n" +
 	"\vtotal_count\x18\x03 \x01(\x05R\n" +
 	"totalCount\"\xdc\x03\n" +
@@ -2484,12 +2527,12 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"externalId\"9\n" +
 	"\x16GetCatalogStatsRequest\x12\x1f\n" +
 	"\vlibrary_ids\x18\x01 \x03(\tR\n" +
-	"libraryIds\"\xda\x01\n" +
+	"libraryIds\"\xd4\x01\n" +
 	"\x17GetCatalogStatsResponse\x12\x1f\n" +
 	"\vtotal_items\x18\x01 \x01(\x05R\n" +
-	"totalItems\x12O\n" +
-	"\x11media_type_counts\x18\x02 \x03(\v2#.prairie.plugin.v1.CatalogTypeCountR\x0fmediaTypeCounts\x12M\n" +
-	"\x0elibrary_counts\x18\x03 \x03(\v2&.prairie.plugin.v1.CatalogLibraryCountR\rlibraryCounts\"G\n" +
+	"totalItems\x12L\n" +
+	"\x11media_type_counts\x18\x02 \x03(\v2 .prairie.plugin.v1.CatalogTypeCountR\x0fmediaTypeCounts\x12J\n" +
+	"\x0elibrary_counts\x18\x03 \x03(\v2#.prairie.plugin.v1.CatalogLibraryCountR\rlibraryCounts\"G\n" +
 	"\x10CatalogTypeCount\x12\x1d\n" +
 	"\n" +
 	"media_type\x18\x01 \x01(\tR\tmediaType\x12\x14\n" +
@@ -2503,9 +2546,9 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"\x05count\x18\x04 \x01(\x05R\x05count\"P\n" +
 	"\x1eResolveCatalogImageURLsRequest\x12\x14\n" +
 	"\x05paths\x18\x01 \x03(\tR\x05paths\x12\x18\n" +
-	"\avariant\x18\x02 \x01(\tR\avariant\"\xac\x01\n" +
-	"\x1fResolveCatalogImageURLsResponse\x12P\n" +
-	"\x04urls\x18\x01 \x03(\v2<.prairie.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntryR\x04urls\x1a7\n" +
+	"\avariant\x18\x02 \x01(\tR\avariant\"\xa9\x01\n" +
+	"\x1fResolveCatalogImageURLsResponse\x12M\n" +
+	"\x04urls\x18\x01 \x03(\v29.prairie.plugin.v1.ResolveCatalogImageURLsResponse.UrlsEntryR\x04urls\x1a7\n" +
 	"\tUrlsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x85\x04\n" +
@@ -2529,54 +2572,59 @@ const file_prairie_plugin_v1_runtime_host_proto_rawDesc = "" +
 	"stream_url\x18\x01 \x01(\tR\tstreamUrl\x12\x1f\n" +
 	"\vplay_method\x18\x02 \x01(\tR\n" +
 	"playMethod\x12&\n" +
-	"\x0fexpires_at_unix\x18\x03 \x01(\x03R\rexpiresAtUnix\"\xbc\x02\n" +
+	"\x0fexpires_at_unix\x18\x03 \x01(\x03R\rexpiresAtUnix\"\xb9\x02\n" +
 	"\x15CallPluginHTTPRequest\x12'\n" +
 	"\x0finstallation_id\x18\x01 \x01(\x05R\x0einstallationId\x12\x16\n" +
 	"\x06method\x18\x02 \x01(\tR\x06method\x12\x12\n" +
-	"\x04path\x18\x03 \x01(\tR\x04path\x12O\n" +
-	"\aheaders\x18\x04 \x03(\v25.prairie.plugin.v1.CallPluginHTTPRequest.HeadersEntryR\aheaders\x12\x12\n" +
+	"\x04path\x18\x03 \x01(\tR\x04path\x12L\n" +
+	"\aheaders\x18\x04 \x03(\v22.prairie.plugin.v1.CallPluginHTTPRequest.HeadersEntryR\aheaders\x12\x12\n" +
 	"\x04body\x18\x05 \x01(\fR\x04body\x12-\n" +
 	"\x05query\x18\x06 \x01(\v2\x17.google.protobuf.StructR\x05query\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdb\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xd8\x01\n" +
 	"\x16CallPluginHTTPResponse\x12\x1f\n" +
 	"\vstatus_code\x18\x01 \x01(\x05R\n" +
-	"statusCode\x12P\n" +
-	"\aheaders\x18\x02 \x03(\v26.prairie.plugin.v1.CallPluginHTTPResponse.HeadersEntryR\aheaders\x12\x12\n" +
+	"statusCode\x12M\n" +
+	"\aheaders\x18\x02 \x03(\v23.prairie.plugin.v1.CallPluginHTTPResponse.HeadersEntryR\aheaders\x12\x12\n" +
 	"\x04body\x18\x03 \x01(\fR\x04body\x1a:\n" +
 	"\fHeadersEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\",\n" +
 	"\x18ReadInstanceStateRequest\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\"G\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\"\x7f\n" +
 	"\x19ReadInstanceStateResponse\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\fR\x05value\x12\x14\n" +
-	"\x05found\x18\x02 \x01(\bR\x05found\"C\n" +
+	"\x05found\x18\x02 \x01(\bR\x05found\x12\x18\n" +
+	"\aversion\x18\x03 \x01(\x03R\aversion\x12\x1c\n" +
+	"\tversioned\x18\x04 \x01(\bR\tversioned\"\x88\x01\n" +
 	"\x19WriteInstanceStateRequest\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\fR\x05value\"\x1c\n" +
-	"\x1aWriteInstanceStateResponse\"b\n" +
-	" ReportNetworkAccessStatusRequest\x12>\n" +
-	"\x06status\x18\x01 \x01(\v2&.prairie.plugin.v1.NetworkAccessStatusR\x06status\"#\n" +
-	"!ReportNetworkAccessStatusResponse2\xa2\x0e\n" +
-	"\vRuntimeHost\x12_\n" +
-	"\fPublishEvent\x12&.prairie.plugin.v1.PublishEventRequest\x1a'.prairie.plugin.v1.PublishEventResponse\x12e\n" +
-	"\x0ePublishEventTo\x12(.prairie.plugin.v1.PublishEventToRequest\x1a).prairie.plugin.v1.PublishEventToResponse\x12\x89\x01\n" +
-	"\x1aPublishEventToInstallation\x124.prairie.plugin.v1.PublishEventToInstallationRequest\x1a5.prairie.plugin.v1.PublishEventToInstallationResponse\x12\\\n" +
-	"\vGetHostInfo\x12%.prairie.plugin.v1.GetHostInfoRequest\x1a&.prairie.plugin.v1.GetHostInfoResponse\x12b\n" +
-	"\rListLibraries\x12'.prairie.plugin.v1.ListLibrariesRequest\x1a(.prairie.plugin.v1.ListLibrariesResponse\x12q\n" +
-	"\x12CheckMediaPresence\x12,.prairie.plugin.v1.CheckMediaPresenceRequest\x1a-.prairie.plugin.v1.CheckMediaPresenceResponse\x12w\n" +
-	"\x14ListInstalledPlugins\x12..prairie.plugin.v1.ListInstalledPluginsRequest\x1a/.prairie.plugin.v1.ListInstalledPluginsResponse\x12w\n" +
-	"\x14SetGlobalConfigEntry\x12..prairie.plugin.v1.SetGlobalConfigEntryRequest\x1a/.prairie.plugin.v1.SetGlobalConfigEntryResponse\x12k\n" +
-	"\x10ListLibraryMedia\x12*.prairie.plugin.v1.ListLibraryMediaRequest\x1a+.prairie.plugin.v1.ListLibraryMediaResponse\x12h\n" +
-	"\x0fGetCatalogStats\x12).prairie.plugin.v1.GetCatalogStatsRequest\x1a*.prairie.plugin.v1.GetCatalogStatsResponse\x12\x80\x01\n" +
-	"\x17ResolveCatalogImageURLs\x121.prairie.plugin.v1.ResolveCatalogImageURLsRequest\x1a2.prairie.plugin.v1.ResolveCatalogImageURLsResponse\x12k\n" +
-	"\x10MintScopedStream\x12*.prairie.plugin.v1.MintScopedStreamRequest\x1a+.prairie.plugin.v1.MintScopedStreamResponse\x12e\n" +
-	"\x0eCallPluginHTTP\x12(.prairie.plugin.v1.CallPluginHTTPRequest\x1a).prairie.plugin.v1.CallPluginHTTPResponse\x12n\n" +
-	"\x11ReadInstanceState\x12+.prairie.plugin.v1.ReadInstanceStateRequest\x1a,.prairie.plugin.v1.ReadInstanceStateResponse\x12q\n" +
-	"\x12WriteInstanceState\x12,.prairie.plugin.v1.WriteInstanceStateRequest\x1a-.prairie.plugin.v1.WriteInstanceStateResponse\x12\x86\x01\n" +
-	"\x19ReportNetworkAccessStatus\x123.prairie.plugin.v1.ReportNetworkAccessStatusRequest\x1a4.prairie.plugin.v1.ReportNetworkAccessStatusResponseBYZWgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
+	"\x05value\x18\x02 \x01(\fR\x05value\x12.\n" +
+	"\x10expected_version\x18\x03 \x01(\x03H\x00R\x0fexpectedVersion\x88\x01\x01B\x13\n" +
+	"\x11_expected_version\"6\n" +
+	"\x1aWriteInstanceStateResponse\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\x03R\aversion\"_\n" +
+	" ReportNetworkAccessStatusRequest\x12;\n" +
+	"\x06status\x18\x01 \x01(\v2#.prairie.plugin.v1.NetworkAccessStatusR\x06status\"#\n" +
+	"!ReportNetworkAccessStatusResponse2\xc1\r\n" +
+	"\vRuntimeHost\x12Y\n" +
+	"\fPublishEvent\x12#.prairie.plugin.v1.PublishEventRequest\x1a$.prairie.plugin.v1.PublishEventResponse\x12_\n" +
+	"\x0ePublishEventTo\x12%.prairie.plugin.v1.PublishEventToRequest\x1a&.prairie.plugin.v1.PublishEventToResponse\x12\x83\x01\n" +
+	"\x1aPublishEventToInstallation\x121.prairie.plugin.v1.PublishEventToInstallationRequest\x1a2.prairie.plugin.v1.PublishEventToInstallationResponse\x12V\n" +
+	"\vGetHostInfo\x12\".prairie.plugin.v1.GetHostInfoRequest\x1a#.prairie.plugin.v1.GetHostInfoResponse\x12\\\n" +
+	"\rListLibraries\x12$.prairie.plugin.v1.ListLibrariesRequest\x1a%.prairie.plugin.v1.ListLibrariesResponse\x12k\n" +
+	"\x12CheckMediaPresence\x12).prairie.plugin.v1.CheckMediaPresenceRequest\x1a*.prairie.plugin.v1.CheckMediaPresenceResponse\x12q\n" +
+	"\x14ListInstalledPlugins\x12+.prairie.plugin.v1.ListInstalledPluginsRequest\x1a,.prairie.plugin.v1.ListInstalledPluginsResponse\x12q\n" +
+	"\x14SetGlobalConfigEntry\x12+.prairie.plugin.v1.SetGlobalConfigEntryRequest\x1a,.prairie.plugin.v1.SetGlobalConfigEntryResponse\x12e\n" +
+	"\x10ListLibraryMedia\x12'.prairie.plugin.v1.ListLibraryMediaRequest\x1a(.prairie.plugin.v1.ListLibraryMediaResponse\x12b\n" +
+	"\x0fGetCatalogStats\x12&.prairie.plugin.v1.GetCatalogStatsRequest\x1a'.prairie.plugin.v1.GetCatalogStatsResponse\x12z\n" +
+	"\x17ResolveCatalogImageURLs\x12..prairie.plugin.v1.ResolveCatalogImageURLsRequest\x1a/.prairie.plugin.v1.ResolveCatalogImageURLsResponse\x12e\n" +
+	"\x10MintScopedStream\x12'.prairie.plugin.v1.MintScopedStreamRequest\x1a(.prairie.plugin.v1.MintScopedStreamResponse\x12_\n" +
+	"\x0eCallPluginHTTP\x12%.prairie.plugin.v1.CallPluginHTTPRequest\x1a&.prairie.plugin.v1.CallPluginHTTPResponse\x12h\n" +
+	"\x11ReadInstanceState\x12(.prairie.plugin.v1.ReadInstanceStateRequest\x1a).prairie.plugin.v1.ReadInstanceStateResponse\x12k\n" +
+	"\x12WriteInstanceState\x12).prairie.plugin.v1.WriteInstanceStateRequest\x1a*.prairie.plugin.v1.WriteInstanceStateResponse\x12\x80\x01\n" +
+	"\x19ReportNetworkAccessStatus\x120.prairie.plugin.v1.ReportNetworkAccessStatusRequest\x1a1.prairie.plugin.v1.ReportNetworkAccessStatusResponseBPZNgithub.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_prairie_plugin_v1_runtime_host_proto_rawDescOnce sync.Once
@@ -2702,6 +2750,7 @@ func file_prairie_plugin_v1_runtime_host_proto_init() {
 	}
 	file_prairie_plugin_v1_common_proto_init()
 	file_prairie_plugin_v1_network_access_provider_proto_init()
+	file_prairie_plugin_v1_runtime_host_proto_msgTypes[35].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
