@@ -7,9 +7,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"google.golang.org/protobuf/types/known/structpb"
+
 	pluginv1 "github.com/prairie-server/prairie-plugin-sdk/pkg/pluginproto/prairie/plugin/v1"
 	"github.com/prairie-server/prairie-plugin-sdk/pkg/pluginsdk/manifest"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // TestManifestIsValid keeps the example's destination form within the rules
